@@ -1,0 +1,43 @@
+---
+description: Unity ECS C# naming and namespace conventions
+globs: **/*.cs
+alwaysApply: false
+---
+
+# Unity ECS C# Conventions
+
+Target this project's C# code for Unity `6000.4.x` and Entities/ECS `6.4.0`.
+
+- Place project code in the `LittleAISystem` namespace.
+- Component types must end with `Component`.
+- System types must end with `System`.
+- Authoring types must end with `Authoring`.
+- Job types must end with `Job`.
+- Use PascalCase for class members, static members, and constants.
+- Use camelCase for methods and private members, except when Unity or ECS requires a fixed API name such as interface implementations, overrides, attributes, or serialized callback methods.
+
+Examples:
+
+```csharp
+namespace LittleAISystem
+{
+    public struct MoveSpeedComponent : IComponentData
+    {
+        public float Value;
+    }
+
+    public partial struct MovementSystem : ISystem
+    {
+        private float cachedDeltaTime;
+
+        public void OnUpdate(ref SystemState state)
+        {
+            updateMovement(ref state);
+        }
+
+        private void updateMovement(ref SystemState state) { }
+    }
+}
+```
+
+When generating or updating ECS code, prefer APIs and patterns compatible with Unity Entities `6.4.0`.

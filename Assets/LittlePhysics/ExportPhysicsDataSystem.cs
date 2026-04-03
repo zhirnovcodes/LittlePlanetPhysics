@@ -24,7 +24,7 @@ namespace LittlePhysics
 
             state.Dependency = new ExportPhysicsDataJob
             {
-                DynamicData = singleton.DynamicData
+                Bodies = singleton.Bodies
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -34,14 +34,14 @@ namespace LittlePhysics
     {
         [ReadOnly]
         [NativeDisableContainerSafetyRestriction]
-        public NativeParallelHashMap<int, DynamicPhysicsData> DynamicData;
+        public NativeList<PhysicsBodyData> Bodies;
 
         public void Execute(ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyIndexComponent bodyIndex)
         {
             if (body.BodyType != BodyType.Dynamic)
                 return;
 
-            var data = DynamicData[bodyIndex.Value];
+            var data = Bodies[bodyIndex.Value];
             transform.Position = data.Position;
             transform.Rotation = quaternion.EulerXYZ(data.RotationOffset);
         }

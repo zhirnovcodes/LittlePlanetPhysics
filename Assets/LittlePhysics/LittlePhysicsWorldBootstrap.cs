@@ -21,16 +21,14 @@ namespace LittlePhysics
 
             ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<LittlePhysicsUpdateSystem>(systemHandle);
 
-            if (!littleSystem.DynamicData.IsCreated)
+            if (!littleSystem.Bodies.IsCreated)
                 return;
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var singletonEntity = ecb.CreateEntity();
             ecb.AddComponent(singletonEntity, new PhysicsSingleton
             {
-                DynamicData = littleSystem.DynamicData,
-                StaticData = littleSystem.StaticData,
-                TriggerData = littleSystem.TriggerData
+                Bodies = littleSystem.Bodies
             });
             ecb.Playback(state.EntityManager);
             ecb.Dispose();

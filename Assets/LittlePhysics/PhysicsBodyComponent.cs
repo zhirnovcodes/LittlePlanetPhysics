@@ -16,29 +16,18 @@ namespace LittlePhysics
         public BodyType BodyType;
         public StaticColliderType ColliderType;
         public float3 LocalPosition;
+        public float3 RotationOffset;
         public float Scale;
-        public float Height;
 
-        public DynamicPhysicsData ToDynamicData(LocalTransform transform) => new DynamicPhysicsData
+        public PhysicsBodyData ToBodyData(Entity entity, LocalTransform transform) => new PhysicsBodyData
         {
-            Position = transform.Position + LocalPosition,
-            RotationOffset = float3.zero,
-            Scale = transform.Scale * Scale
-        };
-
-        public StaticPhysicsData ToStaticData(LocalTransform transform) => new StaticPhysicsData
-        {
+            Main = entity,
+            BodyType = BodyType,
             ColliderType = ColliderType,
             Position = transform.Position + LocalPosition,
-            Up = math.rotate(transform.Rotation, math.up()),
+            RotationOffset = RotationOffset,
             Scale = transform.Scale * Scale,
-            Height = Height
-        };
-
-        public TriggerPhysicsData ToTriggerData(LocalTransform transform) => new TriggerPhysicsData
-        {
-            Position = transform.Position + LocalPosition,
-            Scale = transform.Scale * Scale
+            Up = math.rotate(transform.Rotation, math.up())
         };
     }
 }

@@ -8,9 +8,7 @@ namespace LittlePhysics
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial struct LittlePhysicsUpdateSystem : ISystem
     {
-        [NoAlias] public NativeParallelHashMap<int, DynamicPhysicsData> DynamicData;
-        [NoAlias] public NativeParallelHashMap<int, StaticPhysicsData> StaticData;
-        [NoAlias] public NativeParallelHashMap<int, TriggerPhysicsData> TriggerData;
+        [NoAlias] public NativeList<PhysicsBodyData> Bodies;
 
         public void OnCreate(ref SystemState state)
         {
@@ -19,25 +17,22 @@ namespace LittlePhysics
 
         public void OnDestroy(ref SystemState state)
         {
-            if (DynamicData.IsCreated) DynamicData.Dispose();
-            if (StaticData.IsCreated) StaticData.Dispose();
-            if (TriggerData.IsCreated) TriggerData.Dispose();
+            if (Bodies.IsCreated) Bodies.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!DynamicData.IsCreated)
+            if (!Bodies.IsCreated)
             {
                 var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
                 var capacity = settings.BlobRef.Value.MaxEntitiesCount;
-                DynamicData = new NativeParallelHashMap<int, DynamicPhysicsData>(capacity, Allocator.Persistent);
-                StaticData = new NativeParallelHashMap<int, StaticPhysicsData>(capacity, Allocator.Persistent);
-                TriggerData = new NativeParallelHashMap<int, TriggerPhysicsData>(capacity, Allocator.Persistent);
+                Bodies = new NativeList<PhysicsBodyData>(capacity, Allocator.Persistent);
+                Bodies.Resize(capacity, NativeArrayOptions.ClearMemory);
             }
 
             state.Dependency = new MoveRightJob
             {
-                DynamicData = DynamicData,
+                Bodies = Bodies,
                 DeltaTime = SystemAPI.Time.DeltaTime
             }.Schedule(state.Dependency);
         }
@@ -45,19 +40,19 @@ namespace LittlePhysics
         [BurstCompile]
         private struct MoveRightJob : IJob
         {
-            public NativeParallelHashMap<int, DynamicPhysicsData> DynamicData;
+            public NativeList<PhysicsBodyData> Bodies;
             public float DeltaTime;
 
             public void Execute()
             {
-                var keys = DynamicData.GetKeyArray(Allocator.Temp);
-                for (int i = 0; i < keys.Length; i++)
+                for (int i = 0; i < Bodies.Length; i++)
                 {
-                    var data = DynamicData[keys[i]];
-                    data.Position.x += 0.5f * DeltaTime;
-                    DynamicData[keys[i]] = data;
+                    var body = Bodies[i];
+                    if (body.BodyType != BodyType.Dynamic)
+                        continue;
+                    body.Position.x += 0.5f * DeltaTime;
+                    Bodies[i] = body;
                 }
-                keys.Dispose();
             }
         }
     }

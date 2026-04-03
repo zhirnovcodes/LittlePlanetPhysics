@@ -10,7 +10,6 @@ namespace LittlePhysics
         public StaticColliderType ColliderType;
         public Vector3 LocalPosition;
         public float Scale = 1f;
-        public float Height = 1f;
 
         private sealed class Baker : Baker<PhysicsBodyAuthoring>
         {
@@ -22,8 +21,8 @@ namespace LittlePhysics
                     BodyType = authoring.BodyType,
                     ColliderType = authoring.ColliderType,
                     LocalPosition = authoring.LocalPosition,
-                    Scale = authoring.Scale,
-                    Height = authoring.Height
+                    RotationOffset = float3.zero,
+                    Scale = authoring.Scale
                 });
             }
         }

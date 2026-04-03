@@ -18,14 +18,11 @@ namespace LittlePhysics
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            UnityEngine.Debug.Log(1);
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
 
             state.Dependency = new ImportPhysicsDataJob
             {
-                DynamicData = singleton.DynamicData,
-                StaticData = singleton.StaticData,
-                TriggerData = singleton.TriggerData
+                Bodies = singleton.Bodies
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -33,28 +30,12 @@ namespace LittlePhysics
     [BurstCompile]
     public partial struct ImportPhysicsDataJob : IJobEntity
     {
-        // Each entity writes to its own unique key - no actual races occur
         [NativeDisableContainerSafetyRestriction]
-        public NativeParallelHashMap<int, DynamicPhysicsData> DynamicData;
-        [NativeDisableContainerSafetyRestriction]
-        public NativeParallelHashMap<int, StaticPhysicsData> StaticData;
-        [NativeDisableContainerSafetyRestriction]
-        public NativeParallelHashMap<int, TriggerPhysicsData> TriggerData;
+        public NativeList<PhysicsBodyData> Bodies;
 
-        public void Execute(in LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyIndexComponent bodyIndex)
+        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyIndexComponent bodyIndex)
         {
-            switch (body.BodyType)
-            {
-                case BodyType.Dynamic:
-                    DynamicData[bodyIndex.Value] = body.ToDynamicData(transform);
-                    break;
-                case BodyType.Static:
-                    StaticData[bodyIndex.Value] = body.ToStaticData(transform);
-                    break;
-                case BodyType.Trigger:
-                    TriggerData[bodyIndex.Value] = body.ToTriggerData(transform);
-                    break;
-            }
+            Bodies[bodyIndex.Value] = body.ToBodyData(entity, transform);
         }
     }
 }

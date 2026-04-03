@@ -44,24 +44,12 @@ namespace LittlePhysics
             for (int i = 0; i < entities.Length; i++)
             {
                 int slot = slotCounter.Value;
-                if (slot >= singleton.DynamicData.Capacity)
+                if (slot >= singleton.Bodies.Length)
                     break;
 
                 slotCounter.Value++;
 
-                switch (bodies[i].BodyType)
-                {
-                    case BodyType.Dynamic:
-                        singleton.DynamicData.TryAdd(slot, bodies[i].ToDynamicData(transforms[i]));
-                        break;
-                    case BodyType.Static:
-                        singleton.StaticData.TryAdd(slot, bodies[i].ToStaticData(transforms[i]));
-                        break;
-                    case BodyType.Trigger:
-                        singleton.TriggerData.TryAdd(slot, bodies[i].ToTriggerData(transforms[i]));
-                        break;
-                }
-
+                singleton.Bodies[slot] = bodies[i].ToBodyData(entities[i], transforms[i]);
                 ecb.AddComponent(entities[i], new PhysicsBodyIndexComponent { Value = slot });
             }
 

@@ -296,9 +296,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71246454091084843843a64c3bd2582b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpacialMapSettingsAuthoring
-  Position: {x: 0, y: 0, z: 0}
+  Position: {x: -4.02, y: -3.42, z: -4.32}
   CellWidth: 1
-  CellsWidth: 16
+  CellsWidth: 8
+  RandomSeed: 12345
+  ShouldDrawCells: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

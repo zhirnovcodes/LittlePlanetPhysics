@@ -10,6 +10,7 @@ namespace LittlePhysics
         public float CellWidth = 1f;
         public int CellsWidth = 16;
         public uint RandomSeed = 12345;
+        public bool ShouldDrawCells = false;
 
         private sealed class Baker : Baker<SpacialMapSettingsAuthoring>
         {

@@ -8,7 +8,7 @@ alwaysApply: false
 
 Target this project's C# code for Unity `6000.4.x` and Entities/ECS `6.4.0`.
 
-- Place project code in the `LittleAISystem` namespace.
+- Place project code in the `LittlePhysics` namespace.
 - Component types must end with `Component`.
 - System types must end with `System`.
 - Authoring types must end with `Authoring`.
@@ -19,7 +19,7 @@ Target this project's C# code for Unity `6000.4.x` and Entities/ECS `6.4.0`.
 Examples:
 
 ```csharp
-namespace LittleAISystem
+namespace LittlePhysics
 {
     public struct MoveSpeedComponent : IComponentData
     {

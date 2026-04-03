@@ -40,6 +40,8 @@ namespace LittlePhysics
         public float3 Position;
         public float3 RotationOffset;
         public float Scale;
+
+        public Sphere GetSphere() => new Sphere { Position = Position, Scale = Scale };
     }
 
     public struct StaticPhysicsData
@@ -48,12 +50,17 @@ namespace LittlePhysics
         public float3 Position;
         public float3 Up;
         public float Scale;
+
+        public Sphere GetSphere() => new Sphere { Position = Position, Scale = Scale };
+        public Capsule GetCapsule() => new Capsule { Position = Position, Up = Up, Scale = Scale };
     }
 
     public struct TriggerPhysicsData
     {
         public float3 Position;
         public float Scale;
+
+        public Sphere GetSphere() => new Sphere { Position = Position, Scale = Scale };
     }
 
     public struct PhysicsBodyData

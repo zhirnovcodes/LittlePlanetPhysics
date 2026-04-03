@@ -6,6 +6,7 @@ using Unity.Jobs;
 namespace LittlePhysics
 {
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateAfter(typeof(CollisionsUpdateSystem))]
     public partial struct LittlePhysicsUpdateSystem : ISystem
     {
         [NoAlias] public NativeList<PhysicsBodyData> Bodies;

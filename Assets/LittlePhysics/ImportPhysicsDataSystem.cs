@@ -32,10 +32,12 @@ namespace LittlePhysics
                 Bodies = singleton.Bodies
             }.Schedule(combinedDep);
 
-            state.Dependency = new ImportPhysicsDataJob
+            var inportJob = new ImportPhysicsDataJob
             {
                 Bodies = singleton.Bodies
             }.Schedule(clearJob);
+
+            state.Dependency = JobHandle.CombineDependencies(clearJob, inportJob);
 
             singleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(singleton);

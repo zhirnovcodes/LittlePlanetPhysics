@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace LittlePhysics
 {
-    public struct BodiesPair : IEquatable<BodiesPair>
+    public struct BodiesPair : System.IEquatable<BodiesPair>
     {
         public Entity Entity1;
         public Entity Entity2;
@@ -20,7 +20,6 @@ namespace LittlePhysics
             return unchecked((int)(Entity1.Index ^ Entity2.Index));
         }
     }
-
     public struct CollisionMapSingleton
     {
         [NoAlias] public NativeParallelMultiHashMap<Entity, Entity> Collisions;
@@ -92,5 +91,6 @@ namespace LittlePhysics
     {
         [NoAlias] public NativeList<PhysicsBodyData> Bodies;
         public CollisionMapSingleton CollisionMap;
+        public SpacialMap SpacialMap;
     }
 }

@@ -17,9 +17,18 @@ namespace LittlePhysics
                 var entity = GetEntity(TransformUsageFlags.None);
                 AddComponent(entity, new SpacialMapSettingsComponent
                 {
-                    Position = authoring.Position,
-                    CellWidth = authoring.CellWidth,
-                    CellsWidth = authoring.CellsWidth,
+                    SpacialMap = new SpacialMap
+                    {
+                        Grid = new Grid3D
+                        {
+                            Position = authoring.Position,
+                            CellSize = authoring.CellWidth
+                        },
+                        GridSize = new Unity.Mathematics.int3(
+                            authoring.CellsWidth,
+                            authoring.CellsWidth,
+                            authoring.CellsWidth)
+                    }
                 });
             }
         }

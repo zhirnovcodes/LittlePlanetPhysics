@@ -5,20 +5,20 @@ namespace LittlePhysics
     [System.Serializable]
     public struct LodPhysicsData
     {
-        public int MaxEntityCount = 100000;
-        public int MaxEntitiesInCell = 16;
+        public int MaxEntityCount;
+        public int MaxEntitiesInCell;
 
-        public int MaxCollisionsPerEntity = 16;
-        public int MaxCollisionsPerEntityX2 = 8;
-        public int MaxCollisionsPerEntityX4 = 4;
+        public int MaxCollisionsPerEntity;
+        public int MaxCollisionsPerEntityX2;
+        public int MaxCollisionsPerEntityX4;
 
-        public int MaxCellPerEntity = 32;
-        public int MaxCellPerEntityX2 = 16;
-        public int MaxCellPerEntityX4 = 8;
+        public int MaxCellPerEntity;
+        public int MaxCellPerEntityX2;
+        public int MaxCellPerEntityX4;
 
-        public int MaxIntersectionsPerEntity = 32;
-        public int MaxIntersectionsPerEntityX2 = 16;
-        public int MaxIntersectionsPerEntityX4 = 8;
+        public int MaxIntersectionsPerEntity;
+        public int MaxIntersectionsPerEntityX2;
+        public int MaxIntersectionsPerEntityX4;
 
     }
 

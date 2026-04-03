@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -42,13 +43,13 @@ namespace LittlePhysics
                 return;
 
             var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
-            var mapSettings = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
-            initCollections(ref settings.BlobRef.Value, mapSettings);
+            var spacialMapSingleton = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
+            initCollections(ref settings.BlobRef.Value, spacialMapSingleton.SpacialMap.GridSize);
         }
 
-        private void initCollections(ref PhysicsSettingsBlobAsset blob, SpacialMapSettingsComponent mapSettings)
+        private void initCollections(ref PhysicsSettingsBlobAsset blob, Unity.Mathematics.int3 gridSize)
         {
-            int totalCells = mapSettings.CellsWidth * mapSettings.CellsWidth * mapSettings.CellsWidth;
+            int totalCells = gridSize.x * gridSize.y * gridSize.z;
 
             EntitiesInCellsCount = new NativeParallelHashMap<int, uint>(
                 totalCells, Allocator.Persistent);

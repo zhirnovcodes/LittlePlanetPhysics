@@ -9,6 +9,7 @@ namespace LittlePhysics
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSettingsComponent>();
+            state.RequireForUpdate<SpacialMapSettingsComponent>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -33,6 +34,8 @@ namespace LittlePhysics
             if (!collisionsSystem.Collisions.IsCreated)
                 return;
 
+            var spacialMap = SystemAPI.GetSingleton<SpacialMapSettingsComponent>().SpacialMap;
+
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var singletonEntity = ecb.CreateEntity();
             ecb.AddComponent(singletonEntity, new PhysicsSingleton
@@ -44,7 +47,8 @@ namespace LittlePhysics
                     DynamicMap = collisionsSystem.DynamicMap,
                     TriggersMap = collisionsSystem.TriggersMap,
                     StaticMap = collisionsSystem.StaticMap
-                }
+                },
+                SpacialMap = spacialMap
             });
             ecb.Playback(state.EntityManager);
             ecb.Dispose();

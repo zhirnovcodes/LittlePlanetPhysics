@@ -5,6 +5,30 @@ using Unity.Mathematics;
 
 namespace LittlePhysics
 {
+    public struct BodiesPair : IEquatable<BodiesPair>
+    {
+        public Entity Entity1;
+        public Entity Entity2;
+
+        public bool Equals(BodiesPair other)
+        {
+            return Entity1.Equals(other.Entity1) && Entity2.Equals(other.Entity2);
+        }
+
+        public override int GetHashCode()
+        {
+            return unchecked((int)(Entity1.Index ^ Entity2.Index));
+        }
+    }
+
+    public struct CollisionMapSingleton
+    {
+        [NoAlias] public NativeParallelMultiHashMap<Entity, Entity> Collisions;
+        [NoAlias] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
+        [NoAlias] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
+        [NoAlias] public NativeParallelHashMap<int, Entity> StaticMap;
+    }
+
     public enum StaticColliderType
     {
         Sphere,
@@ -67,5 +91,6 @@ namespace LittlePhysics
     public struct PhysicsSingleton : IComponentData
     {
         [NoAlias] public NativeList<PhysicsBodyData> Bodies;
+        public CollisionMapSingleton CollisionMap;
     }
 }

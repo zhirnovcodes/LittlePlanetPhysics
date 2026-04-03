@@ -24,11 +24,27 @@ namespace LittlePhysics
             if (!littleSystem.Bodies.IsCreated)
                 return;
 
+            var collisionsHandle = state.World.GetExistingSystem<CollisionsUpdateSystem>();
+            if (collisionsHandle == SystemHandle.Null)
+                return;
+
+            ref var collisionsSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionsUpdateSystem>(collisionsHandle);
+
+            if (!collisionsSystem.Collisions.IsCreated)
+                return;
+
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var singletonEntity = ecb.CreateEntity();
             ecb.AddComponent(singletonEntity, new PhysicsSingleton
             {
-                Bodies = littleSystem.Bodies
+                Bodies = littleSystem.Bodies,
+                CollisionMap = new CollisionMapSingleton
+                {
+                    Collisions = collisionsSystem.Collisions,
+                    DynamicMap = collisionsSystem.DynamicMap,
+                    TriggersMap = collisionsSystem.TriggersMap,
+                    StaticMap = collisionsSystem.StaticMap
+                }
             });
             ecb.Playback(state.EntityManager);
             ecb.Dispose();

@@ -7,6 +7,7 @@ namespace LittlePhysics
     public sealed class PhysicsSettingsAuthoring : MonoBehaviour
     {
         public int MaxEntitiesCount = 1000000;
+        public LodPhysicsData LodData;
 
         private sealed class Baker : Baker<PhysicsSettingsAuthoring>
         {
@@ -15,6 +16,7 @@ namespace LittlePhysics
                 var builder = new BlobBuilder(Allocator.Temp);
                 ref var root = ref builder.ConstructRoot<PhysicsSettingsBlobAsset>();
                 root.MaxEntitiesCount = authoring.MaxEntitiesCount;
+                root.LodData = authoring.LodData;
 
                 var blobRef = builder.CreateBlobAssetReference<PhysicsSettingsBlobAsset>(Allocator.Persistent);
                 builder.Dispose();

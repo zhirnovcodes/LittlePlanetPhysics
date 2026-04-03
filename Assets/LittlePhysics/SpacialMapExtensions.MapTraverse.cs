@@ -312,10 +312,6 @@ namespace LittlePhysics
             return true;
         }
 
-        #endregion
-
-        #region Optimized Cube Traversal
-
         /// <summary>
         /// Initializes the optimized cube traversal iterator with random sampling.
         /// </summary>

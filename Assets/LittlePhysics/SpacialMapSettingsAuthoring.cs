@@ -9,6 +9,7 @@ namespace LittlePhysics
         public Vector3 Position = Vector3.zero;
         public float CellWidth = 1f;
         public int CellsWidth = 16;
+        public uint RandomSeed = 12345;
 
         private sealed class Baker : Baker<SpacialMapSettingsAuthoring>
         {
@@ -29,6 +30,10 @@ namespace LittlePhysics
                             authoring.CellsWidth,
                             authoring.CellsWidth)
                     }
+                });
+                AddComponent(entity, new PhysicsMapRandomComponent
+                {
+                    Seed = authoring.RandomSeed
                 });
             }
         }

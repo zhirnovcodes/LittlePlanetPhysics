@@ -30,11 +30,20 @@ namespace LittlePhysics
                 Bodies.Resize(capacity, NativeArrayOptions.ClearMemory);
             }
 
+            if (!SystemAPI.HasSingleton<PhysicsSingleton>())
+                return;
+
+            var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
+            var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
+
             state.Dependency = new MoveRightJob
             {
                 Bodies = Bodies,
                 DeltaTime = SystemAPI.Time.DeltaTime
-            }.Schedule(state.Dependency);
+            }.Schedule(combinedDep);
+
+            singleton.PhysicsJobHandle = state.Dependency;
+            SystemAPI.SetSingleton(singleton);
         }
 
         [BurstCompile]

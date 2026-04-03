@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace LittlePhysics
@@ -92,5 +93,6 @@ namespace LittlePhysics
         [NoAlias] public NativeList<PhysicsBodyData> Bodies;
         public CollisionMapSingleton CollisionMap;
         public SpacialMap SpacialMap;
+        public JobHandle PhysicsJobHandle;
     }
 }

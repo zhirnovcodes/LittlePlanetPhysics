@@ -2,12 +2,14 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Transforms;
 
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(InitializationSystemGroup))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     public partial struct ImportPhysicsDataSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
@@ -20,10 +22,33 @@ namespace LittlePhysics
         {
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
 
+            // Complete any previous-frame job that was reading/writing Bodies
+            // before touching the list on the main thread.
+            //singleton.PhysicsJobHandle.Complete();
+            var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
+
+            var clearJob = new ClearJob
+            {
+                Bodies = singleton.Bodies
+            }.Schedule(combinedDep);
+
             state.Dependency = new ImportPhysicsDataJob
             {
                 Bodies = singleton.Bodies
-            }.ScheduleParallel(state.Dependency);
+            }.Schedule(clearJob);
+
+            singleton.PhysicsJobHandle = state.Dependency;
+            SystemAPI.SetSingleton(singleton);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct ClearJob : IJob
+    {
+        public NativeList<PhysicsBodyData> Bodies;
+        public void Execute()
+        {
+            Bodies.Clear();
         }
     }
 
@@ -33,9 +58,9 @@ namespace LittlePhysics
         [NativeDisableContainerSafetyRestriction]
         public NativeList<PhysicsBodyData> Bodies;
 
-        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyIndexComponent bodyIndex)
+        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body)
         {
-            Bodies[bodyIndex.Value] = body.ToBodyData(entity, transform);
+            Bodies.Add(body.ToBodyData(entity, transform));
         }
     }
 }

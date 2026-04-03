@@ -6,8 +6,6 @@ namespace LittlePhysics
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct LittlePhysicsBootstrapSystem : ISystem
     {
-        private const string PhysicsWorldName = "LittlePhysicsWorld";
-
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSettingsComponent>();
@@ -17,34 +15,11 @@ namespace LittlePhysics
 
         public void OnUpdate(ref SystemState state)
         {
-            World physicsWorld = null;
-            foreach (var world in World.All)
-            {
-                if (world.IsCreated && world.Name == PhysicsWorldName)
-                {
-                    physicsWorld = world;
-                    break;
-                }
-            }
-
-            if (physicsWorld == null)
-            {
-                var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
-
-                physicsWorld = new World(PhysicsWorldName);
-                DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups(physicsWorld, typeof(LittlePhysicsUpdateSystem));
-                ScriptBehaviourUpdateOrder.AppendWorldToCurrentPlayerLoop(physicsWorld);
-
-                var settingsEntity = physicsWorld.EntityManager.CreateEntity();
-                physicsWorld.EntityManager.AddComponentData(settingsEntity, settings.Clone());
-                return;
-            }
-
-            var systemHandle = physicsWorld.GetExistingSystem<LittlePhysicsUpdateSystem>();
+            var systemHandle = state.World.GetExistingSystem<LittlePhysicsUpdateSystem>();
             if (systemHandle == SystemHandle.Null)
                 return;
 
-            ref var littleSystem = ref physicsWorld.Unmanaged.GetUnsafeSystemRef<LittlePhysicsUpdateSystem>(systemHandle);
+            ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<LittlePhysicsUpdateSystem>(systemHandle);
 
             if (!littleSystem.DynamicData.IsCreated)
                 return;

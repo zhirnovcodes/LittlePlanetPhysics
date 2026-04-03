@@ -1,10 +1,10 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace LittlePhysics
 {
-    [DisableAutoCreation]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial struct LittlePhysicsUpdateSystem : ISystem
     {
@@ -33,6 +33,31 @@ namespace LittlePhysics
                 DynamicData = new NativeParallelHashMap<int, DynamicPhysicsData>(capacity, Allocator.Persistent);
                 StaticData = new NativeParallelHashMap<int, StaticPhysicsData>(capacity, Allocator.Persistent);
                 TriggerData = new NativeParallelHashMap<int, TriggerPhysicsData>(capacity, Allocator.Persistent);
+            }
+
+            state.Dependency = new MoveRightJob
+            {
+                DynamicData = DynamicData,
+                DeltaTime = SystemAPI.Time.DeltaTime
+            }.Schedule(state.Dependency);
+        }
+
+        [BurstCompile]
+        private struct MoveRightJob : IJob
+        {
+            public NativeParallelHashMap<int, DynamicPhysicsData> DynamicData;
+            public float DeltaTime;
+
+            public void Execute()
+            {
+                var keys = DynamicData.GetKeyArray(Allocator.Temp);
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    var data = DynamicData[keys[i]];
+                    data.Position.x += 0.5f * DeltaTime;
+                    DynamicData[keys[i]] = data;
+                }
+                keys.Dispose();
             }
         }
     }

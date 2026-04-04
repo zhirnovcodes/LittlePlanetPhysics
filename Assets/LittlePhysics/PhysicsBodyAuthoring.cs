@@ -10,6 +10,10 @@ namespace LittlePhysics
         public ColliderType ColliderType;
         public Vector3 LocalPosition;
         public float Scale = 1f;
+        public float Mass = 1f;
+        public float Bounciness = 0.5f;
+        public float Friction = 0.5f;
+        public float Hardness = 0.5f;
 
         private sealed class Baker : Baker<PhysicsBodyAuthoring>
         {
@@ -22,10 +26,19 @@ namespace LittlePhysics
                     ColliderType = authoring.BodyType == BodyType.Static ? authoring.ColliderType : ColliderType.Sphere,
                     LocalPosition = authoring.LocalPosition,
                     RotationOffset = float3.zero,
-                    Scale = authoring.Scale
+                    Scale = authoring.Scale,
+                    Mass = authoring.Mass,
+                    Bounciness = authoring.Bounciness,
+                    Friction = authoring.Friction,
+                    Hardness = authoring.Hardness
                 });
 
                 AddComponent(entity, new PhysicsBodyUpdateTag());
+
+                if (authoring.BodyType == BodyType.Dynamic)
+                {
+                    AddComponent(entity, new PhysicsVelocityComponent());
+                }
             }
         }
     }

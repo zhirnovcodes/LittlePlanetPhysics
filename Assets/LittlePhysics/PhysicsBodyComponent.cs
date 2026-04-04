@@ -22,6 +22,10 @@ namespace LittlePhysics
         public float3 LocalPosition;
         public float3 RotationOffset;
         public float Scale;
+        public float Mass;
+        public float Bounciness;
+        public float Friction;
+        public float Hardness;
 
         public PhysicsBodyData ToBodyData(Entity entity, LocalTransform transform) => new PhysicsBodyData
         {
@@ -31,7 +35,11 @@ namespace LittlePhysics
             Position = transform.Position + LocalPosition,
             RotationOffset = RotationOffset,
             Scale = transform.Scale * Scale,
-            Up = math.rotate(transform.Rotation, math.up())
+            Up = math.rotate(transform.Rotation, math.up()),
+            Mass = Mass,
+            Bounciness = Bounciness,
+            Friction = Friction,
+            Hardness = Hardness
         };
     }
 }

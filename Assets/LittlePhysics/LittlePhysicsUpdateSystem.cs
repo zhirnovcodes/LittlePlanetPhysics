@@ -6,7 +6,7 @@ using Unity.Jobs;
 namespace LittlePhysics
 {
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(CollisionsUpdateSystem))]
+    [UpdateAfter(typeof(CollisionMapUpdateSystem))]
     public partial struct LittlePhysicsUpdateSystem : ISystem
     {
         [NoAlias] public NativeList<Entity> BodiesEntities;
@@ -59,6 +59,7 @@ namespace LittlePhysics
 
             public void Execute()
             {
+                return;
                 for (int i = 0; i < BodiesEntities.Length; i++)
                 {
                     var entity = BodiesEntities[i];

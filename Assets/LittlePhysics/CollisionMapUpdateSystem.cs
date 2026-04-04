@@ -10,9 +10,10 @@ namespace LittlePhysics
 {
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
-    public partial struct CollisionsUpdateSystem : ISystem
+    public partial struct CollisionMapUpdateSystem : ISystem
     {
-        [NoAlias] public NativeArray<int> EntitiesInCellsCount;
+        [NoAlias] public NativeArray<int> DynamicInCellsCount;
+        [NoAlias] public NativeArray<int> TriggersInCellsCount;
 
         [NoAlias] public NativeParallelMultiHashMap<Entity, Entity> Collisions;
         [NoAlias] public NativeParallelHashMap<Entity, uint> CollisionsCount;
@@ -22,7 +23,7 @@ namespace LittlePhysics
 
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
-        [NoAlias] public NativeParallelHashMap<int, Entity> StaticMap;
+        [NoAlias] public NativeParallelHashMap<uint, Entity> StaticMap;
 
         [NoAlias] public NativeArray<Random> Randoms;
 
@@ -35,7 +36,8 @@ namespace LittlePhysics
 
         public void OnDestroy(ref SystemState state)
         {
-            if (EntitiesInCellsCount.IsCreated) EntitiesInCellsCount.Dispose();
+            if (DynamicInCellsCount.IsCreated) DynamicInCellsCount.Dispose();
+            if (TriggersInCellsCount.IsCreated) TriggersInCellsCount.Dispose();
             if (Collisions.IsCreated) Collisions.Dispose();
             if (CollisionsCount.IsCreated) CollisionsCount.Dispose();
             if (Intersections.IsCreated) Intersections.Dispose();
@@ -48,7 +50,7 @@ namespace LittlePhysics
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!EntitiesInCellsCount.IsCreated)
+            if (!DynamicInCellsCount.IsCreated)
             {
                 var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
                 var spacialMapSingleton = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
@@ -71,16 +73,21 @@ namespace LittlePhysics
             var clearJob = new ClearJob
             {
                 DynamicMap = DynamicMap,
-                EntitiesInCellsCount = EntitiesInCellsCount
+                TriggersMap = TriggersMap,
+                DynamicInCellsCount = DynamicInCellsCount,
+                TriggersInCellsCount = TriggersInCellsCount
             }.Schedule(physicsHandle);
 
-            var addDynamicJob = new AddDynamicBodiesJob
+            var addDynamicJob = new AddBodiesJob
             {
                 BodiesEntities = physicsSingleton.BodiesEntities,
                 Bodies = physicsSingleton.Bodies,
                 SpatialMap = physicsSingleton.SpacialMap,
                 DynamicMap = DynamicMap.AsParallelWriter(),
-                EntitiesInCellsCount = EntitiesInCellsCount,
+                TriggersMap = TriggersMap.AsParallelWriter(),
+                StaticMap = StaticMap.AsParallelWriter(),
+                DynamicInCellsCount = DynamicInCellsCount,
+                TriggersInCellsCount = TriggersInCellsCount,
                 Randoms = Randoms,
                 MaxCellsPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntity,
                 MaxEntitiesInCell = physicsSettings.BlobRef.Value.LodData.MaxEntitiesInCell
@@ -96,7 +103,8 @@ namespace LittlePhysics
         {
             int totalCells = gridSize.x * gridSize.y * gridSize.z;
 
-            EntitiesInCellsCount = new NativeArray<int>(totalCells, Allocator.Persistent);
+            DynamicInCellsCount = new NativeArray<int>(totalCells, Allocator.Persistent);
+            TriggersInCellsCount = new NativeArray<int>(totalCells, Allocator.Persistent);
 
             Collisions = new NativeParallelMultiHashMap<Entity, Entity>(
                 blob.GetSumEntitiesXCollisions(), Allocator.Persistent);
@@ -116,7 +124,7 @@ namespace LittlePhysics
             TriggersMap = new NativeParallelMultiHashMap<uint, Entity>(
                 totalCells * blob.GetMaxEntitiesInCell(), Allocator.Persistent);
 
-            StaticMap = new NativeParallelHashMap<int, Entity>(
+            StaticMap = new NativeParallelHashMap<uint, Entity>(
                 totalCells, Allocator.Persistent);
 
             Randoms = new NativeArray<Random>(blob.MaxEntitiesCount, Allocator.Persistent);
@@ -128,25 +136,34 @@ namespace LittlePhysics
         private struct ClearJob : IJob
         {
             [WriteOnly] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
-            public NativeArray<int> EntitiesInCellsCount;
+            [WriteOnly] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
+            public NativeArray<int> DynamicInCellsCount;
+            public NativeArray<int> TriggersInCellsCount;
 
             public void Execute()
             {
                 DynamicMap.Clear();
-                for (int i = 0; i < EntitiesInCellsCount.Length; i++)
-                    EntitiesInCellsCount[i] = 0;
+                TriggersMap.Clear();
+                for (int i = 0; i < DynamicInCellsCount.Length; i++)
+                    DynamicInCellsCount[i] = 0;
+                for (int i = 0; i < TriggersInCellsCount.Length; i++)
+                    TriggersInCellsCount[i] = 0;
             }
         }
 
         [BurstCompile]
-        private struct AddDynamicBodiesJob : IJobParallelFor
+        private struct AddBodiesJob : IJobParallelFor
         {
             [ReadOnly] public NativeList<Entity> BodiesEntities;
             [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
             [ReadOnly] public SpacialMap SpatialMap;
 
             [WriteOnly] public NativeParallelMultiHashMap<uint, Entity>.ParallelWriter DynamicMap;
-            [NativeDisableParallelForRestriction] public NativeArray<int> EntitiesInCellsCount;
+            [WriteOnly] public NativeParallelMultiHashMap<uint, Entity>.ParallelWriter TriggersMap;
+            [WriteOnly] public NativeParallelHashMap<uint, Entity>.ParallelWriter StaticMap;
+
+            [NativeDisableParallelForRestriction] public NativeArray<int> DynamicInCellsCount;
+            [NativeDisableParallelForRestriction] public NativeArray<int> TriggersInCellsCount;
             [NativeDisableParallelForRestriction] public NativeArray<Random> Randoms;
 
             public int MaxCellsPerEntity;
@@ -161,9 +178,23 @@ namespace LittlePhysics
                 if (!Bodies.TryGetValue(entity, out var body))
                     return;
 
-                if (body.BodyType != BodyType.Dynamic)
-                    return;
+                switch (body.BodyType)
+                {
+                    case BodyType.Dynamic:
+                        AddBodyToDynamic(index, body);
+                        break;
+                    case BodyType.Static:
+                        AddBodyToStatic(index, body);
+                        break;
+                    case BodyType.Trigger:
+                        AddBodyToTrigger(index, body);
+                        break;
+                }
 
+            }
+
+            private void AddBodyToDynamic(int index, PhysicsBodyData body)
+            {
                 var random = Randoms[index];
 
                 SpatialMap.GetCellIndices(body.Position, body.Scale, out int startCellIndex, out int3 cellSize);
@@ -172,22 +203,50 @@ namespace LittlePhysics
 
                 if (totalCellsInArea <= MaxCellsPerEntity)
                 {
-                    AddToMap(body.Main, body.Position, body.Scale, startCellIndex, cubeSize);
+                    AddToDynamicMap(body.Main, body.Position, body.Scale, startCellIndex, cubeSize);
                 }
                 else
                 {
-                    AddToMapOptimized(body.Main, body.Position, body.Scale, startCellIndex, cubeSize, ref random);
+                    AddDynamicToMapOptimized(body.Main, body.Position, body.Scale, startCellIndex, cubeSize, ref random);
                 }
 
                 Randoms[index] = random;
             }
 
-            private void AddToMap(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize)
+            private void AddBodyToStatic(int index, PhysicsBodyData body)
+            {
+                SpatialMap.GetCellIndices(body.Position, body.Scale, out int startCellIndex, out int3 cellSize);
+                int cubeSize = math.max(math.max(cellSize.x, cellSize.y), cellSize.z);
+
+                AddToStaticMap(body.Main, body.Position, body.Scale, startCellIndex, cubeSize);
+            }
+
+            private void AddBodyToTrigger(int index, PhysicsBodyData body)
+            {
+                var random = Randoms[index];
+
+                SpatialMap.GetCellIndices(body.Position, body.Scale, out int startCellIndex, out int3 cellSize);
+                int totalCellsInArea = cellSize.x * cellSize.y * cellSize.z;
+                int cubeSize = math.max(math.max(cellSize.x, cellSize.y), cellSize.z);
+
+                if (totalCellsInArea <= MaxCellsPerEntity)
+                {
+                    AddToTriggersMap(body.Main, body.Position, body.Scale, startCellIndex, cubeSize);
+                }
+                else
+                {
+                    AddTriggerToMapOptimized(body.Main, body.Position, body.Scale, startCellIndex, cubeSize, ref random);
+                }
+
+                Randoms[index] = random;
+            }
+
+            private void AddToDynamicMap(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize)
             {
                 var iterator = new TraverseCubeIterator();
                 while (SpatialMap.TraverseSphereNext(position, scale, startCellIndex, cubeSize, ref iterator, out int cellIndex))
                 {
-                    if (CanAddEntity(cellIndex))
+                    if (CanAddDynamic(cellIndex))
                     {
                         DynamicMap.Add((uint)cellIndex, entity);
                     }
@@ -195,21 +254,66 @@ namespace LittlePhysics
                 }
             }
 
-            private void AddToMapOptimized(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize, ref Random random)
+            private void AddDynamicToMapOptimized(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize, ref Random random)
             {
                 var iterator = new TraverseCubeOptimizedIterator();
                 while (SpatialMap.TraverseSphereOptimizedNext(position, scale, startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
                 {
-                    if (CanAddEntity(cellIndex))
+                    if (CanAddDynamic(cellIndex))
                     {
                         DynamicMap.Add((uint)cellIndex, entity);
                     }
                 }
             }
 
-            private unsafe bool CanAddEntity(int cellIndex)
+            private void AddToStaticMap(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize)
             {
-                ref int count = ref UnsafeUtility.ArrayElementAsRef<int>(EntitiesInCellsCount.GetUnsafePtr(), cellIndex);
+                var iterator = new TraverseCubeIterator();
+                while (SpatialMap.TraverseSphereNext(position, scale, startCellIndex, cubeSize, ref iterator, out int cellIndex))
+                {
+                    StaticMap.TryAdd((uint)cellIndex, entity);
+                }
+            }
+
+            private void AddToTriggersMap(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize)
+            {
+                var iterator = new TraverseCubeIterator();
+                while (SpatialMap.TraverseSphereNext(position, scale, startCellIndex, cubeSize, ref iterator, out int cellIndex))
+                {
+                    if (CanAddTrigger(cellIndex))
+                    {
+                        TriggersMap.Add((uint)cellIndex, entity);
+                    }
+                }
+            }
+
+            private void AddTriggerToMapOptimized(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize, ref Random random)
+            {
+                var iterator = new TraverseCubeOptimizedIterator();
+                while (SpatialMap.TraverseSphereOptimizedNext(position, scale, startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
+                {
+                    if (CanAddTrigger(cellIndex))
+                    {
+                        TriggersMap.Add((uint)cellIndex, entity);
+                    }
+                }
+            }
+
+            private unsafe bool CanAddDynamic(int cellIndex)
+            {
+                ref int count = ref UnsafeUtility.ArrayElementAsRef<int>(DynamicInCellsCount.GetUnsafePtr(), cellIndex);
+                int prev = Interlocked.Increment(ref count) - 1;
+                if (prev >= MaxEntitiesInCell)
+                {
+                    Interlocked.Decrement(ref count);
+                    return false;
+                }
+                return true;
+            }
+
+            private unsafe bool CanAddTrigger(int cellIndex)
+            {
+                ref int count = ref UnsafeUtility.ArrayElementAsRef<int>(TriggersInCellsCount.GetUnsafePtr(), cellIndex);
                 int prev = Interlocked.Increment(ref count) - 1;
                 if (prev >= MaxEntitiesInCell)
                 {

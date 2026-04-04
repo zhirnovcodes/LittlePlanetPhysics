@@ -26,6 +26,9 @@ namespace LittlePhysics
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
+
             var clearJob = new ClearJob
             {
                 Bodies = singleton.Bodies,
@@ -36,7 +39,8 @@ namespace LittlePhysics
             {
                 Bodies = singleton.Bodies,
                 BodiesEntities = singleton.BodiesEntities,
-                MaxEntitiesCount = maxEntitiesCount
+                MaxEntitiesCount = maxEntitiesCount,
+                ECB = ecb
             }.Schedule(clearJob);
 
             state.Dependency = JobHandle.CombineDependencies(clearJob, importJob);
@@ -67,14 +71,20 @@ namespace LittlePhysics
         [NativeDisableContainerSafetyRestriction]
         public NativeList<Entity> BodiesEntities;
         public int MaxEntitiesCount;
+        public EntityCommandBuffer ECB;
 
-        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body)
+        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateTag tag)
         {
             if (BodiesEntities.Length >= MaxEntitiesCount)
                 return;
 
             BodiesEntities.Add(entity);
             Bodies.TryAdd(entity, body.ToBodyData(entity, transform));
+
+            if (body.BodyType == BodyType.Static)
+            {
+                ECB.SetComponentEnabled<PhysicsBodyUpdateTag>(entity, false);
+            }
         }
     }
 }

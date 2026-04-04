@@ -11,6 +11,10 @@ namespace LittlePhysics
         Trigger
     }
 
+    public struct PhysicsBodyUpdateTag : IComponentData, IEnableableComponent
+    {
+    }
+
     public struct PhysicsBodyComponent : IComponentData
     {
         public BodyType BodyType;

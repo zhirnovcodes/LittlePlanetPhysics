@@ -25,11 +25,11 @@ namespace LittlePhysics
             if (!littleSystem.Bodies.IsCreated || !littleSystem.BodiesEntities.IsCreated)
                 return;
 
-            var collisionsHandle = state.World.GetExistingSystem<CollisionsUpdateSystem>();
+            var collisionsHandle = state.World.GetExistingSystem<CollisionMapUpdateSystem>();
             if (collisionsHandle == SystemHandle.Null)
                 return;
 
-            ref var collisionsSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionsUpdateSystem>(collisionsHandle);
+            ref var collisionsSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionMapUpdateSystem>(collisionsHandle);
 
             if (!collisionsSystem.Collisions.IsCreated)
                 return;

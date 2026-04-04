@@ -24,6 +24,8 @@ namespace LittlePhysics
                     RotationOffset = float3.zero,
                     Scale = authoring.Scale
                 });
+
+                AddComponent(entity, new PhysicsBodyUpdateTag());
             }
         }
     }

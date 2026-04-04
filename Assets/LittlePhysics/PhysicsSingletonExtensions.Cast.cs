@@ -43,12 +43,16 @@ namespace LittlePhysics
             float closestDistSq = float.MaxValue;
             bool found = false;
 
+            var shouldFindDynamic = (filter.Types & CastFilter.BodyTypes.Dynamic) != 0;
+            var shouldFindStatic = (filter.Types & CastFilter.BodyTypes.Static) != 0;
+            var shouldFindTrigger = (filter.Types & CastFilter.BodyTypes.Trigger) != 0;
+
             var line = new Line { Position = start, Direction = direction };
             var cellIterator = new TraverseLineIterator();
 
             while (physics.SpacialMap.TraverseLineNext(start, direction, ref cellIterator, out int cellId))
             {
-                if ((filter.Types & CastFilter.BodyTypes.Dynamic) != 0 &&
+                if (shouldFindDynamic &&
                     physics.CollisionMap.DynamicMap.TryGetFirstValue((uint)cellId, out Entity dynEntity, out var dynIt))
                 {
                     do
@@ -68,8 +72,8 @@ namespace LittlePhysics
                     while (physics.CollisionMap.DynamicMap.TryGetNextValue(out dynEntity, ref dynIt));
                 }
 
-                if ((filter.Types & CastFilter.BodyTypes.Static) != 0 &&
-                    physics.CollisionMap.StaticMap.TryGetValue(cellId, out Entity staticEntity))
+                if (shouldFindStatic &&
+                    physics.CollisionMap.StaticMap.TryGetValue((uint)cellId, out Entity staticEntity))
                 {
                     if (physics.Bodies.TryGetValue(staticEntity, out PhysicsBodyData body) &&
                         CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
@@ -84,7 +88,7 @@ namespace LittlePhysics
                     }
                 }
 
-                if ((filter.Types & CastFilter.BodyTypes.Trigger) != 0 &&
+                if (shouldFindTrigger &&
                     physics.CollisionMap.TriggersMap.TryGetFirstValue((uint)cellId, out Entity trigEntity, out var trigIt))
                 {
                     do
@@ -144,7 +148,7 @@ namespace LittlePhysics
 
                 if (count < results.Length &&
                     (filter.Types & CastFilter.BodyTypes.Static) != 0 &&
-                    physics.CollisionMap.StaticMap.TryGetValue(cellId, out Entity staticEntity))
+                    physics.CollisionMap.StaticMap.TryGetValue((uint)cellId, out Entity staticEntity))
                 {
                     if (physics.Bodies.TryGetValue(staticEntity, out PhysicsBodyData body) &&
                         CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))

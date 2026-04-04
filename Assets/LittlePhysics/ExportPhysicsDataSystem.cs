@@ -21,16 +21,14 @@ namespace LittlePhysics
         public void OnUpdate(ref SystemState state)
         {
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
-            if (!singleton.BodiesEntities.IsCreated)
+            if (!singleton.Bodies.IsCreated)
                 return;
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
             state.Dependency = new ExportPhysicsDataJob
             {
-                BodiesEntities = singleton.BodiesEntities,
                 Bodies = singleton.Bodies,
-                LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>()
             }.Schedule(combinedDep);
 
             singleton.PhysicsJobHandle = state.Dependency;
@@ -38,31 +36,20 @@ namespace LittlePhysics
         }
 
         [BurstCompile]
-        private struct ExportPhysicsDataJob : IJob
+        private partial struct ExportPhysicsDataJob : IJobEntity
         {
-            [ReadOnly] public NativeList<Entity> BodiesEntities;
             [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
-            public ComponentLookup<LocalTransform> LocalTransformLookup;
 
-            public void Execute()
+            public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateTag tag)
             {
-                for (int i = 0; i < BodiesEntities.Length; i++)
-                {
-                    var entity = BodiesEntities[i];
-                    if (!Bodies.TryGetValue(entity, out var body))
-                        continue;
+                if (body.BodyType == BodyType.Dynamic == false)
+                    return;
 
-                    if (!LocalTransformLookup.TryGetComponent(entity, out var localTransform))
-                        continue;
+                if (!Bodies.TryGetValue(entity, out var bodyData))
+                    return;
 
-                    LocalTransformLookup[entity] =
-                        new LocalTransform
-                        {
-                            Position = body.Position,
-                            Rotation = math.mul(localTransform.Rotation, quaternion.EulerXYZ(body.RotationOffset)),
-                            Scale = localTransform.Scale
-                        };
-                }
+                transform.Position = bodyData.Position - body.LocalPosition;
+                transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(bodyData.RotationOffset));
             }
         }
     }

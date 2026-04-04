@@ -26,7 +26,7 @@ namespace LittlePhysics
         [NoAlias] public NativeParallelMultiHashMap<Entity, Entity> Collisions;
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
-        [NoAlias] public NativeParallelHashMap<int, Entity> StaticMap;
+        [NoAlias] public NativeParallelHashMap<uint, Entity> StaticMap;
     }
 
     public enum ColliderType

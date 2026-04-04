@@ -17,7 +17,6 @@ namespace LittlePhysics
 
         [NoAlias] public NativeParallelHashSet<BodiesPair> Pairs;
         [NoAlias] public NativeReference<int> PairsCount;
-        [NoAlias] public NativeList<BodiesPair> PairsList;
 
         public void OnCreate(ref SystemState state)
         {
@@ -31,7 +30,6 @@ namespace LittlePhysics
             if (CollisionsCount.IsCreated) CollisionsCount.Dispose();
             if (Pairs.IsCreated) Pairs.Dispose();
             if (PairsCount.IsCreated) PairsCount.Dispose();
-            if (PairsList.IsCreated) PairsList.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -63,7 +61,6 @@ namespace LittlePhysics
                 CollisionsCount = CollisionsCount,
                 Pairs = Pairs,
                 PairsCount = PairsCount,
-                PairsList = PairsList,
             }.Schedule(physicsHandle);
 
             int totalCells = spacialMapSettings.SpacialMap.GetCellsCount();
@@ -75,20 +72,14 @@ namespace LittlePhysics
                 StaticMap = mapSystem.StaticMap,
                 Pairs = Pairs.AsParallelWriter(),
                 PairsCount = PairsCount,
-                PairsList = PairsList.AsParallelWriter(),
                 MaxPairs = physicsSettings.BlobRef.Value.GetSumEntitiesXPairs(),
-            }.Schedule(totalCells, 16, clearJob);
-
-            var collisionCheckJob = new CollisionCheckJob
-            {
-                Pairs = PairsList,
                 Bodies = physicsSingleton.Bodies,
                 Collisions = Collisions.AsParallelWriter(),
                 CollisionsCount = CollisionsCount,
                 MaxCollisions = physicsSettings.BlobRef.Value.GetSumEntitiesXCollisions(),
-            }.Schedule(PairsList, 16, pairsCheckJob);
+            }.Schedule(totalCells, 16, clearJob);
 
-            state.Dependency = collisionCheckJob;
+            state.Dependency = pairsCheckJob;
             physicsSingleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(physicsSingleton);
         }
@@ -104,9 +95,6 @@ namespace LittlePhysics
                 blob.GetSumEntitiesXPairs(), Allocator.Persistent);
 
             PairsCount = new NativeReference<int>(0, Allocator.Persistent);
-
-            PairsList = new NativeList<BodiesPair>(
-                blob.GetSumEntitiesXPairs(), Allocator.Persistent);
         }
 
         [BurstCompile]
@@ -116,7 +104,6 @@ namespace LittlePhysics
             public NativeReference<int> CollisionsCount;
             public NativeParallelHashSet<BodiesPair> Pairs;
             public NativeReference<int> PairsCount;
-            public NativeList<BodiesPair> PairsList;
 
             public void Execute()
             {
@@ -124,7 +111,6 @@ namespace LittlePhysics
                 CollisionsCount.Value = 0;
                 Pairs.Clear();
                 PairsCount.Value = 0;
-                PairsList.Clear();
             }
         }
 
@@ -137,9 +123,13 @@ namespace LittlePhysics
 
             public NativeParallelHashSet<BodiesPair>.ParallelWriter Pairs;
             [NativeDisableContainerSafetyRestriction] public NativeReference<int> PairsCount;
-            [NativeDisableContainerSafetyRestriction] public NativeList<BodiesPair>.ParallelWriter PairsList;
 
             public int MaxPairs;
+
+            [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
+            public NativeParallelMultiHashMap<Entity, CollisionItem>.ParallelWriter Collisions;
+            [NativeDisableContainerSafetyRestriction] public NativeReference<int> CollisionsCount;
+            public int MaxCollisions;
 
             public unsafe void Execute(int cellIndex)
             {
@@ -173,7 +163,7 @@ namespace LittlePhysics
                         if (Pairs.Add(pair))
                         {
                             Interlocked.Increment(ref UnsafeUtility.AsRef<int>(PairsCount.GetUnsafePtr()));
-                            PairsList.AddNoResize(pair);
+                            CheckCollision(pair);
                         }
                     }
                 }
@@ -250,26 +240,12 @@ namespace LittlePhysics
                 if (Pairs.Add(pair))
                 {
                     Interlocked.Increment(ref UnsafeUtility.AsRef<int>(PairsCount.GetUnsafePtr()));
-                    PairsList.AddNoResize(pair);
+                    CheckCollision(pair);
                 }
             }
-        }
 
-        [BurstCompile]
-        private struct CollisionCheckJob : IJobParallelForDefer
-        {
-            [ReadOnly] public NativeList<BodiesPair> Pairs;
-            [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
-
-            public NativeParallelMultiHashMap<Entity, CollisionItem>.ParallelWriter Collisions;
-            [NativeDisableContainerSafetyRestriction] public NativeReference<int> CollisionsCount;
-
-            public int MaxCollisions;
-
-            public unsafe void Execute(int index)
+            private unsafe void CheckCollision(BodiesPair pair)
             {
-                var pair = Pairs[index];
-
                 if (!Bodies.TryGetValue(pair.Entity1, out var body1)) return;
                 if (!Bodies.TryGetValue(pair.Entity2, out var body2)) return;
 

@@ -9,5 +9,10 @@ namespace LittlePhysics
     {
         public Grid3D Grid;
         public int3 GridSize;
+
+        public int GetCellsCount()
+        {
+            return GridSize.x * GridSize.y * GridSize.z;
+        }
     }
 }

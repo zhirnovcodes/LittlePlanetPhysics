@@ -380,6 +380,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1331035129
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1331035131}
+  - component: {fileID: 1331035130}
+  m_Layer: 0
+  m_Name: CollisionMapDebug
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1331035130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1331035129}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b96419a9e09854c4d97d67694967c555, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionMapDebugAuthoring
+  UpdateTimeSec: 1
+  CellPrefab: {fileID: 6038661850501266947, guid: 763f7c8050066b948baf3f35037b5bc6, type: 3}
+  BodyToDebug: 0
+--- !u!4 &1331035131
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1331035129}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1855600317
 GameObject:
   m_ObjectHideFlags: 0
@@ -432,7 +479,7 @@ Transform:
   m_GameObject: {fileID: 1855600317}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -1.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -450,9 +497,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71246454091084843843a64c3bd2582b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpacialMapSettingsAuthoring
-  Position: {x: -26.19069, y: -3.42, z: -8.3280525}
-  CellWidth: 7.04
-  CellsWidth: 8
+  Position: {x: -13.083405, y: -10.080854, z: -9.909981}
+  CellWidth: 1.5
+  CellsWidth: 16
   RandomSeed: 12345
   ShouldDrawCells: 0
 --- !u!1 &1931447595
@@ -571,3 +618,4 @@ SceneRoots:
   - {fileID: 353927319}
   - {fileID: 1931447599}
   - {fileID: 1130374976}
+  - {fileID: 1331035131}

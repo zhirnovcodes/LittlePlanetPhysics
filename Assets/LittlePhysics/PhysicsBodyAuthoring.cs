@@ -7,7 +7,7 @@ namespace LittlePhysics
     public sealed class PhysicsBodyAuthoring : MonoBehaviour
     {
         public BodyType BodyType;
-        public StaticColliderType ColliderType;
+        public ColliderType ColliderType;
         public Vector3 LocalPosition;
         public float Scale = 1f;
 
@@ -19,7 +19,7 @@ namespace LittlePhysics
                 AddComponent(entity, new PhysicsBodyComponent
                 {
                     BodyType = authoring.BodyType,
-                    ColliderType = authoring.ColliderType,
+                    ColliderType = authoring.BodyType == BodyType.Static ? authoring.ColliderType : ColliderType.Sphere,
                     LocalPosition = authoring.LocalPosition,
                     RotationOffset = float3.zero,
                     Scale = authoring.Scale

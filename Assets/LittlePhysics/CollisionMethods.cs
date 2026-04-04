@@ -197,6 +197,78 @@ namespace LittlePhysics
             return true;
         }
 
+        /// <summary>
+        /// Returns true when a ray intersects a physics body (sphere or capsule), with the contact point at
+        /// the entry point on the body surface. The ray only tests in the forward direction of Line.Direction.
+        /// </summary>
+        public static bool IsLineCollidingBody(Line line, PhysicsBodyData body, out float3 contactPoint)
+        {
+            if (body.ColliderType == ColliderType.Capsule)
+                return IsLineCollidingCapsule(line, new Capsule { Position = body.Position, Up = body.Up, Scale = body.Scale }, out contactPoint);
+
+            return IsLineCollidingSphere(line, new Sphere { Position = body.Position, Scale = body.Scale }, out contactPoint);
+        }
+
+        /// <summary>
+        /// Returns true when two physics bodies overlap, with the contact point on the surface of body1 facing body2.
+        /// Supports Sphere-Sphere, Sphere-Capsule, Capsule-Sphere, and Capsule-Capsule pairs.
+        /// </summary>
+        public static bool AreBodiesColliding(PhysicsBodyData body1, PhysicsBodyData body2, out float3 contactPoint)
+        {
+            bool b1Sphere = body1.ColliderType == ColliderType.Sphere;
+            bool b2Sphere = body2.ColliderType == ColliderType.Sphere;
+
+            if (b1Sphere && b2Sphere)
+                return AreSpheresColliding(
+                    new Sphere { Position = body1.Position, Scale = body1.Scale },
+                    new Sphere { Position = body2.Position, Scale = body2.Scale },
+                    out contactPoint);
+
+            if (b1Sphere)
+                return IsSphereCollidingCapsule(
+                    new Sphere { Position = body1.Position, Scale = body1.Scale },
+                    new Capsule { Position = body2.Position, Up = body2.Up, Scale = body2.Scale },
+                    out contactPoint);
+
+            if (b2Sphere)
+                return IsSphereCollidingCapsule(
+                    new Sphere { Position = body2.Position, Scale = body2.Scale },
+                    new Capsule { Position = body1.Position, Up = body1.Up, Scale = body1.Scale },
+                    out contactPoint);
+
+            return AreCapsulesColliding(
+                new Capsule { Position = body1.Position, Up = body1.Up, Scale = body1.Scale },
+                new Capsule { Position = body2.Position, Up = body2.Up, Scale = body2.Scale },
+                out contactPoint);
+        }
+
+        private static bool AreCapsulesColliding(Capsule a, Capsule b, out float3 contactPoint)
+        {
+            contactPoint = float3.zero;
+
+            float radiusA = a.Scale * 0.5f;
+            float radiusB = b.Scale * 0.5f;
+            float combinedRadius = radiusA + radiusB;
+
+            float3 a0 = a.Position - a.Up * 0.5f;
+            float3 a1 = a.Position + a.Up * 0.5f;
+            float3 b0 = b.Position - b.Up * 0.5f;
+            float3 b1 = b.Position + b.Up * 0.5f;
+
+            ClosestPointsBetweenSegments(a0, a1, b0, b1, out float3 closestA, out float3 closestB);
+
+            float3 delta = closestB - closestA;
+            float distSq = math.lengthsq(delta);
+
+            if (distSq > combinedRadius * combinedRadius + CollisionEpsilonSq)
+                return false;
+
+            float dist = math.sqrt(distSq);
+            float3 normal = dist < 0.0001f ? new float3(1f, 0f, 0f) : delta / dist;
+            contactPoint = closestA + normal * radiusA;
+            return true;
+        }
+
         private static float3 ClosestPointOnSegment(float3 a, float3 b, float3 point)
         {
             float3 ab = b - a;
@@ -206,6 +278,58 @@ namespace LittlePhysics
 
             float t = math.clamp(math.dot(point - a, ab) / abLenSq, 0f, 1f);
             return a + ab * t;
+        }
+
+        private static void ClosestPointsBetweenSegments(float3 p1, float3 p2, float3 p3, float3 p4, out float3 closest1, out float3 closest2)
+        {
+            float3 d1 = p2 - p1;
+            float3 d2 = p4 - p3;
+            float3 r = p1 - p3;
+
+            float a = math.lengthsq(d1);
+            float e = math.lengthsq(d2);
+            float f = math.dot(d2, r);
+
+            float s, t;
+
+            if (a < 0.0001f && e < 0.0001f)
+            {
+                s = t = 0f;
+            }
+            else if (a < 0.0001f)
+            {
+                s = 0f;
+                t = math.clamp(f / e, 0f, 1f);
+            }
+            else
+            {
+                float c = math.dot(d1, r);
+                if (e < 0.0001f)
+                {
+                    t = 0f;
+                    s = math.clamp(-c / a, 0f, 1f);
+                }
+                else
+                {
+                    float b = math.dot(d1, d2);
+                    float denom = a * e - b * b;
+                    s = denom > 0.0001f ? math.clamp((b * f - c * e) / denom, 0f, 1f) : 0f;
+                    t = (b * s + f) / e;
+                    if (t < 0f)
+                    {
+                        t = 0f;
+                        s = math.clamp(-c / a, 0f, 1f);
+                    }
+                    else if (t > 1f)
+                    {
+                        t = 1f;
+                        s = math.clamp((b - c) / a, 0f, 1f);
+                    }
+                }
+            }
+
+            closest1 = p1 + d1 * s;
+            closest2 = p3 + d2 * t;
         }
 
         private static void CheckCapSphere(float3 rayOrigin, float3 rayDir, float3 center, float radius, ref float tMin)

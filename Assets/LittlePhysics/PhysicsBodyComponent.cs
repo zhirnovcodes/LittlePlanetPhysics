@@ -14,7 +14,7 @@ namespace LittlePhysics
     public struct PhysicsBodyComponent : IComponentData
     {
         public BodyType BodyType;
-        public StaticColliderType ColliderType;
+        public ColliderType ColliderType;
         public float3 LocalPosition;
         public float3 RotationOffset;
         public float Scale;

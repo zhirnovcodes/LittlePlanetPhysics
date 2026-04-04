@@ -61,7 +61,7 @@ namespace LittlePhysics
                 return;
 
             var physicsSingleton = SystemAPI.GetSingleton<PhysicsSingleton>();
-            if (!physicsSingleton.Bodies.IsCreated)
+            if (!physicsSingleton.BodiesEntities.IsCreated)
                 return;
 
             var physicsSettings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
@@ -76,6 +76,7 @@ namespace LittlePhysics
 
             var addDynamicJob = new AddDynamicBodiesJob
             {
+                BodiesEntities = physicsSingleton.BodiesEntities,
                 Bodies = physicsSingleton.Bodies,
                 SpatialMap = physicsSingleton.SpacialMap,
                 DynamicMap = DynamicMap.AsParallelWriter(),
@@ -140,7 +141,8 @@ namespace LittlePhysics
         [BurstCompile]
         private struct AddDynamicBodiesJob : IJobParallelFor
         {
-            [ReadOnly] public NativeList<PhysicsBodyData> Bodies;
+            [ReadOnly] public NativeList<Entity> BodiesEntities;
+            [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
             [ReadOnly] public SpacialMap SpatialMap;
 
             [WriteOnly] public NativeParallelMultiHashMap<uint, Entity>.ParallelWriter DynamicMap;
@@ -152,10 +154,13 @@ namespace LittlePhysics
 
             public void Execute(int index)
             {
-                if (index >= Bodies.Length)
+                if (index >= BodiesEntities.Length)
                     return;
 
-                var body = Bodies[index];
+                var entity = BodiesEntities[index];
+                if (!Bodies.TryGetValue(entity, out var body))
+                    return;
+
                 if (body.BodyType != BodyType.Dynamic)
                     return;
 

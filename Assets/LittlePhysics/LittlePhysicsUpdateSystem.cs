@@ -9,7 +9,8 @@ namespace LittlePhysics
     [UpdateAfter(typeof(CollisionsUpdateSystem))]
     public partial struct LittlePhysicsUpdateSystem : ISystem
     {
-        [NoAlias] public NativeList<PhysicsBodyData> Bodies;
+        [NoAlias] public NativeList<Entity> BodiesEntities;
+        [NoAlias] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
 
         public void OnCreate(ref SystemState state)
         {
@@ -18,6 +19,7 @@ namespace LittlePhysics
 
         public void OnDestroy(ref SystemState state)
         {
+            if (BodiesEntities.IsCreated) BodiesEntities.Dispose();
             if (Bodies.IsCreated) Bodies.Dispose();
         }
 
@@ -27,8 +29,8 @@ namespace LittlePhysics
             {
                 var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
                 var capacity = settings.BlobRef.Value.MaxEntitiesCount;
-                Bodies = new NativeList<PhysicsBodyData>(capacity, Allocator.Persistent);
-                Bodies.Resize(capacity, NativeArrayOptions.ClearMemory);
+                BodiesEntities = new NativeList<Entity>(capacity, Allocator.Persistent);
+                Bodies = new NativeParallelHashMap<Entity, PhysicsBodyData>(capacity, Allocator.Persistent);
             }
 
             if (!SystemAPI.HasSingleton<PhysicsSingleton>())
@@ -39,6 +41,7 @@ namespace LittlePhysics
 
             state.Dependency = new MoveRightJob
             {
+                BodiesEntities = BodiesEntities,
                 Bodies = Bodies,
                 DeltaTime = SystemAPI.Time.DeltaTime
             }.Schedule(combinedDep);
@@ -50,18 +53,23 @@ namespace LittlePhysics
         [BurstCompile]
         private struct MoveRightJob : IJob
         {
-            public NativeList<PhysicsBodyData> Bodies;
+            [ReadOnly] public NativeList<Entity> BodiesEntities;
+            public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
             public float DeltaTime;
 
             public void Execute()
             {
-                for (int i = 0; i < Bodies.Length; i++)
+                for (int i = 0; i < BodiesEntities.Length; i++)
                 {
-                    var body = Bodies[i];
+                    var entity = BodiesEntities[i];
+                    if (!Bodies.TryGetValue(entity, out var body))
+                        continue;
+
                     if (body.BodyType != BodyType.Dynamic)
                         continue;
+
                     body.Position.x += 0.5f * DeltaTime;
-                    Bodies[i] = body;
+                    Bodies[entity] = body;
                 }
             }
         }

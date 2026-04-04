@@ -29,7 +29,7 @@ namespace LittlePhysics
         [NoAlias] public NativeParallelHashMap<int, Entity> StaticMap;
     }
 
-    public enum StaticColliderType
+    public enum ColliderType
     {
         Sphere,
         Capsule
@@ -46,7 +46,7 @@ namespace LittlePhysics
 
     public struct StaticPhysicsData
     {
-        public StaticColliderType ColliderType;
+        public ColliderType ColliderType;
         public float3 Position;
         public float3 Up;
         public float Scale;
@@ -66,7 +66,7 @@ namespace LittlePhysics
     public struct PhysicsBodyData
     {
         public Entity Main;
-        public StaticColliderType ColliderType;
+        public ColliderType ColliderType;
         public BodyType BodyType;
         public float3 Position;
         public float3 RotationOffset;
@@ -97,7 +97,8 @@ namespace LittlePhysics
 
     public struct PhysicsSingleton : IComponentData
     {
-        [NoAlias] public NativeList<PhysicsBodyData> Bodies;
+        [NoAlias] public NativeList<Entity> BodiesEntities;
+        [NoAlias] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
         public CollisionMapSingleton CollisionMap;
         public SpacialMap SpacialMap;
         public JobHandle PhysicsJobHandle;

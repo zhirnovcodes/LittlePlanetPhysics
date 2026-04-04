@@ -15,29 +15,31 @@ namespace LittlePhysics
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSingleton>();
+            state.RequireForUpdate<PhysicsSettingsComponent>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
+            var maxEntitiesCount = SystemAPI.GetSingleton<PhysicsSettingsComponent>().BlobRef.Value.MaxEntitiesCount;
 
-            // Complete any previous-frame job that was reading/writing Bodies
-            // before touching the list on the main thread.
-            //singleton.PhysicsJobHandle.Complete();
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
             var clearJob = new ClearJob
             {
-                Bodies = singleton.Bodies
+                Bodies = singleton.Bodies,
+                BodiesEntities = singleton.BodiesEntities
             }.Schedule(combinedDep);
 
-            var inportJob = new ImportPhysicsDataJob
+            var importJob = new ImportPhysicsDataJob
             {
-                Bodies = singleton.Bodies
+                Bodies = singleton.Bodies,
+                BodiesEntities = singleton.BodiesEntities,
+                MaxEntitiesCount = maxEntitiesCount
             }.Schedule(clearJob);
 
-            state.Dependency = JobHandle.CombineDependencies(clearJob, inportJob);
+            state.Dependency = JobHandle.CombineDependencies(clearJob, importJob);
 
             singleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(singleton);
@@ -47,10 +49,13 @@ namespace LittlePhysics
     [BurstCompile]
     public partial struct ClearJob : IJob
     {
-        public NativeList<PhysicsBodyData> Bodies;
+        public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
+        public NativeList<Entity> BodiesEntities;
+
         public void Execute()
         {
             Bodies.Clear();
+            BodiesEntities.Clear();
         }
     }
 
@@ -58,11 +63,18 @@ namespace LittlePhysics
     public partial struct ImportPhysicsDataJob : IJobEntity
     {
         [NativeDisableContainerSafetyRestriction]
-        public NativeList<PhysicsBodyData> Bodies;
+        public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
+        [NativeDisableContainerSafetyRestriction]
+        public NativeList<Entity> BodiesEntities;
+        public int MaxEntitiesCount;
 
         public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body)
         {
-            Bodies.Add(body.ToBodyData(entity, transform));
+            if (BodiesEntities.Length >= MaxEntitiesCount)
+                return;
+
+            BodiesEntities.Add(entity);
+            Bodies.TryAdd(entity, body.ToBodyData(entity, transform));
         }
     }
 }

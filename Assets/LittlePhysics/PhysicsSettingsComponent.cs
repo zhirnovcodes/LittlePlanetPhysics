@@ -16,9 +16,9 @@ namespace LittlePhysics
         public int MaxCellPerEntityX2;
         public int MaxCellPerEntityX4;
 
-        public int MaxIntersectionsPerEntity;
-        public int MaxIntersectionsPerEntityX2;
-        public int MaxIntersectionsPerEntityX4;
+        public int MaxPairPerEntity;
+        public int MaxPairPerEntityX2;
+        public int MaxPairPerEntityX4;
 
     }
 
@@ -30,7 +30,7 @@ namespace LittlePhysics
         public int GetMaxEntitiesInCell() => LodData.MaxEntitiesInCell;
         public int GetSumEntitiesXCells() => LodData.MaxEntitiesInCell * LodData.MaxCellPerEntity;
         public int GetSumEntitiesXCollisions() => LodData.MaxEntityCount * LodData.MaxCollisionsPerEntity;
-        public int GetSumEntitiesXIntersections() => LodData.MaxEntityCount * LodData.MaxIntersectionsPerEntity;
+        public int GetSumEntitiesXPairs() => LodData.MaxEntityCount * LodData.MaxPairPerEntity;
     }
 
     public struct PhysicsSettingsComponent : IComponentData

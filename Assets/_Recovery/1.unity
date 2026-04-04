@@ -119,53 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &17899369
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 17899371}
-  - component: {fileID: 17899370}
-  m_Layer: 0
-  m_Name: ContactCheck
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &17899370
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 17899369}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ef7c12a5790c084c8c8cc7e8ddcc61b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionsDebugAuthoring
-  UpdateTimeSec: 5
-  CellPrefab: {fileID: 4635816604129892102, guid: b8e6d03d15fb05b458a3304340458ca4, type: 3}
-  BodyToDebug: 0
---- !u!4 &17899371
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 17899369}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &290620806
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,7 +220,7 @@ Transform:
   m_GameObject: {fileID: 290620806}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.01, y: 0.41, z: 8.63}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -374,7 +327,7 @@ Transform:
   m_GameObject: {fileID: 353927315}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.39, y: -0.62, z: 9.22}
+  m_LocalPosition: {x: 1.08, y: -0.62, z: 9.22}
   m_LocalScale: {x: 2.92, y: 2.92, z: 2.92}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -427,6 +380,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1331035129
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1331035131}
+  - component: {fileID: 1331035130}
+  m_Layer: 0
+  m_Name: CollisionMapDebug
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1331035130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1331035129}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b96419a9e09854c4d97d67694967c555, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionMapDebugAuthoring
+  UpdateTimeSec: 1
+  CellPrefab: {fileID: 6038661850501266947, guid: 763f7c8050066b948baf3f35037b5bc6, type: 3}
+  BodyToDebug: 1
+--- !u!4 &1331035131
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1331035129}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1855600317
 GameObject:
   m_ObjectHideFlags: 0
@@ -467,9 +467,9 @@ MonoBehaviour:
     MaxCellPerEntity: 32
     MaxCellPerEntityX2: 16
     MaxCellPerEntityX4: 8
-    MaxPairPerEntity: 32
-    MaxPairPerEntityX2: 16
-    MaxPairPerEntityX4: 8
+    MaxIntersectionsPerEntity: 32
+    MaxIntersectionsPerEntityX2: 16
+    MaxIntersectionsPerEntityX4: 8
 --- !u!4 &1855600319
 Transform:
   m_ObjectHideFlags: 0
@@ -603,7 +603,7 @@ Transform:
   m_GameObject: {fileID: 1931447595}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.91, y: -0.62, z: 10.18}
+  m_LocalPosition: {x: 1.08, y: -0.62, z: 13.34}
   m_LocalScale: {x: 10.02, y: 10.02, z: 10.02}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -618,4 +618,4 @@ SceneRoots:
   - {fileID: 353927319}
   - {fileID: 1931447599}
   - {fileID: 1130374976}
-  - {fileID: 17899371}
+  - {fileID: 1331035131}

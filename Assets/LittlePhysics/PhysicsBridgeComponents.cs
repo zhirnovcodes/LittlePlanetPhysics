@@ -23,10 +23,20 @@ namespace LittlePhysics
     }
     public struct CollisionMapSingleton
     {
-        [NoAlias] public NativeParallelMultiHashMap<Entity, Entity> Collisions;
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
         [NoAlias] public NativeParallelHashMap<uint, Entity> StaticMap;
+    }
+
+    public struct CollisionItem
+    {
+        public Entity Target;
+        public float3 ContactPoint;
+    }
+
+    public struct CollisionsSingleton
+    {
+        [NoAlias] public NativeParallelMultiHashMap<Entity, CollisionItem> Collisions;
     }
 
     public enum ColliderType
@@ -100,6 +110,7 @@ namespace LittlePhysics
         [NoAlias] public NativeList<Entity> BodiesEntities;
         [NoAlias] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
         public CollisionMapSingleton CollisionMap;
+        public CollisionsSingleton Collisions;
         public SpacialMap SpacialMap;
         public JobHandle PhysicsJobHandle;
     }

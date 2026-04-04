@@ -15,12 +15,6 @@ namespace LittlePhysics
         [NoAlias] public NativeArray<int> DynamicInCellsCount;
         [NoAlias] public NativeArray<int> TriggersInCellsCount;
 
-        [NoAlias] public NativeParallelMultiHashMap<Entity, Entity> Collisions;
-        [NoAlias] public NativeParallelHashMap<Entity, uint> CollisionsCount;
-
-        [NoAlias] public NativeParallelHashSet<BodiesPair> Intersections;
-        [NoAlias] public NativeParallelHashMap<Entity, uint> IntersectionsCount;
-
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
         [NoAlias] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
         [NoAlias] public NativeParallelHashMap<uint, Entity> StaticMap;
@@ -38,10 +32,6 @@ namespace LittlePhysics
         {
             if (DynamicInCellsCount.IsCreated) DynamicInCellsCount.Dispose();
             if (TriggersInCellsCount.IsCreated) TriggersInCellsCount.Dispose();
-            if (Collisions.IsCreated) Collisions.Dispose();
-            if (CollisionsCount.IsCreated) CollisionsCount.Dispose();
-            if (Intersections.IsCreated) Intersections.Dispose();
-            if (IntersectionsCount.IsCreated) IntersectionsCount.Dispose();
             if (DynamicMap.IsCreated) DynamicMap.Dispose();
             if (TriggersMap.IsCreated) TriggersMap.Dispose();
             if (StaticMap.IsCreated) StaticMap.Dispose();
@@ -105,18 +95,6 @@ namespace LittlePhysics
 
             DynamicInCellsCount = new NativeArray<int>(totalCells, Allocator.Persistent);
             TriggersInCellsCount = new NativeArray<int>(totalCells, Allocator.Persistent);
-
-            Collisions = new NativeParallelMultiHashMap<Entity, Entity>(
-                blob.GetSumEntitiesXCollisions(), Allocator.Persistent);
-
-            CollisionsCount = new NativeParallelHashMap<Entity, uint>(
-                blob.MaxEntitiesCount, Allocator.Persistent);
-
-            Intersections = new NativeParallelHashSet<BodiesPair>(
-                blob.GetSumEntitiesXIntersections(), Allocator.Persistent);
-
-            IntersectionsCount = new NativeParallelHashMap<Entity, uint>(
-                blob.MaxEntitiesCount, Allocator.Persistent);
 
             DynamicMap = new NativeParallelMultiHashMap<uint, Entity>(
                 totalCells * blob.GetMaxEntitiesInCell(), Allocator.Persistent);
@@ -190,7 +168,6 @@ namespace LittlePhysics
                         AddBodyToTrigger(index, body);
                         break;
                 }
-
             }
 
             private void AddBodyToDynamic(int index, PhysicsBodyData body)

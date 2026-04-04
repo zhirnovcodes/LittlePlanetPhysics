@@ -72,20 +72,9 @@ namespace LittlePhysics
                     while (physics.CollisionMap.DynamicMap.TryGetNextValue(out dynEntity, ref dynIt));
                 }
 
-                if (shouldFindStatic &&
-                    physics.CollisionMap.StaticMap.TryGetValue((uint)cellId, out Entity staticEntity))
+                if (shouldFindStatic)
                 {
-                    if (physics.Bodies.TryGetValue(staticEntity, out PhysicsBodyData body) &&
-                        CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
-                    {
-                        float distSq = math.distancesq(start, contact);
-                        if (distSq < closestDistSq)
-                        {
-                            closestDistSq = distSq;
-                            result = new LineCastResult { Target = staticEntity, Contact = contact };
-                            found = true;
-                        }
-                    }
+                    CheckStatic(ref physics, start, ref result, ref closestDistSq, ref found, line, cellId);
                 }
 
                 if (shouldFindTrigger &&
@@ -110,6 +99,33 @@ namespace LittlePhysics
             }
 
             return found;
+        }
+
+        private static void CheckStatic(ref PhysicsSingleton physics, float3 start, ref LineCastResult result, ref float closestDistSq, ref bool found, Line line, int cellId)
+        {
+            if (physics.CollisionMap.StaticMap.TryGetValue((uint)cellId, out Entity staticEntity) == false)
+            {
+                return;
+            }
+
+            if (physics.Bodies.TryGetValue(staticEntity, out PhysicsBodyData body) == false)
+            {
+                UnityEngine.Debug.Log("1");
+                return;
+            }
+
+            if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact) == false)
+            {
+                return;
+            }
+
+            float distSq = math.distancesq(start, contact);
+            if (distSq < closestDistSq)
+            {
+                closestDistSq = distSq;
+                result = new LineCastResult { Target = staticEntity, Contact = contact };
+                found = true;
+            }
         }
 
         /// <summary>

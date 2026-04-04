@@ -80,11 +80,6 @@ namespace LittlePhysics
 
             BodiesEntities.Add(entity);
             Bodies.TryAdd(entity, body.ToBodyData(entity, transform));
-
-            if (body.BodyType == BodyType.Static)
-            {
-                ECB.SetComponentEnabled<PhysicsBodyUpdateTag>(entity, false);
-            }
         }
     }
 }

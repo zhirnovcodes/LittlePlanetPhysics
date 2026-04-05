@@ -73,18 +73,6 @@ namespace LittlePhysics
         public Sphere GetSphere() => new Sphere { Position = Position, Scale = Scale };
     }
 
-    public struct PhysicsVelocityData
-    {
-        public float3 LinearVelocity;
-        public float3 AngularVelocity;
-
-        public static readonly PhysicsVelocityData Default = new PhysicsVelocityData
-        {
-            LinearVelocity = float3.zero,
-            AngularVelocity = float3.zero
-        };
-    }
-
     public struct PhysicsBodyData
     {
         public Entity Main;

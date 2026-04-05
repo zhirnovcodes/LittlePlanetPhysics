@@ -8,10 +8,5 @@ namespace LittlePhysics
         public float3 LinearVelocity;
         public float3 AngularVelocity;
 
-        public PhysicsVelocityData ToData() => new PhysicsVelocityData
-        {
-            LinearVelocity = LinearVelocity,
-            AngularVelocity = AngularVelocity
-        };
     }
 }

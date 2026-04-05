@@ -169,7 +169,7 @@ MonoBehaviour:
   MaxEntitiesCount: 1000000
   LodData:
     MaxEntityCount: 100000
-    MaxEntitiesInCell: 1
+    MaxEntitiesInCell: 4
     MaxCollisionsPerEntity: 16
     MaxCollisionsPerEntityX2: 8
     MaxCollisionsPerEntityX4: 4

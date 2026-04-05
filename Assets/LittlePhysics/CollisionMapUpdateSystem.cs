@@ -78,19 +78,13 @@ namespace LittlePhysics
 
             var addDynamicJob = new AddBodiesJob
             {
-                //SelectedIndices = SelectedIndices,
                 SelectedBodies = SelectedBodies,
                 SpatialMap = physicsSingleton.SpacialMap,
-                //DynamicMap = DynamicMap.AsParallelWriter(),
-                //TriggersMap = TriggersMap.AsParallelWriter(),
-                //StaticMap = StaticMap.AsParallelWriter(),
-               // DynamicInCellsCount = DynamicInCellsCount,
-                //TriggersInCellsCount = TriggersInCellsCount,
                 DynamicCollisionMap = DynamicCollisionMap,
                 Randoms = Randoms,
                 MaxCellsPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntity,
                 MaxEntitiesInCell = physicsSettings.BlobRef.Value.LodData.MaxEntitiesInCell
-            }.Schedule(SelectedBodies, 32, selectJob);
+            }.Schedule(SelectedBodies, 16, selectJob);
 
             state.Dependency = addDynamicJob;
 
@@ -164,12 +158,6 @@ namespace LittlePhysics
             [ReadOnly] public SpacialMap SpatialMap;
             [ReadOnly] public NativeList<PhysicsBodyData> SelectedBodies;
 
-            //[WriteOnly] public NativeParallelMultiHashMap<uint, Entity>.ParallelWriter DynamicMap;
-            //[WriteOnly] public NativeParallelMultiHashMap<uint, Entity>.ParallelWriter TriggersMap;
-            //[WriteOnly] public NativeParallelHashMap<uint, Entity>.ParallelWriter StaticMap;
-
-            //[NativeDisableParallelForRestriction] public NativeArray<int> DynamicInCellsCount;
-            //[NativeDisableParallelForRestriction] public NativeArray<int> TriggersInCellsCount;
             [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
             [NativeDisableParallelForRestriction] public NativeArray<Random> Randoms;
 

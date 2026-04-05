@@ -51,18 +51,17 @@ namespace LittlePhysics
             unsafe
             {
                 int* countPtr = (int*)Counts.GetUnsafePtr() + (int)cellIndex;
-                int slot = Interlocked.Increment(ref *countPtr) - 1;
 
-                if (slot >= EntitiesPerCell)
+                int slot;
+                int current;
+                do
                 {
-                    // Rollback - cell is full
-                    Interlocked.Decrement(ref *countPtr);
-                    return false;
-                }
-
-                int index = (int)cellIndex * EntitiesPerCell + slot;
-                Map[index] = value;
-
+                    current = Volatile.Read(ref *countPtr);
+                    if (current >= EntitiesPerCell)
+                        return false;
+                } while (Interlocked.CompareExchange(ref *countPtr, current + 1, current) != current);
+                slot = current;
+                Map[(int)cellIndex * EntitiesPerCell + slot] = value;
                 return true;
             }
         }

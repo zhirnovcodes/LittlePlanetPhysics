@@ -14,6 +14,7 @@ namespace LittlePhysics
         public float Bounciness = 0.5f;
         public float Friction = 0.5f;
         public float Hardness = 0.5f;
+        public float TriggerUpdateInterval = 1f;
 
         private sealed class Baker : Baker<PhysicsBodyAuthoring>
         {
@@ -33,7 +34,16 @@ namespace LittlePhysics
                     Hardness = authoring.Hardness
                 });
 
-                AddComponent(entity, new PhysicsBodyUpdateTag());
+                AddComponent(entity, new PhysicsBodyUpdateComponent
+                {
+                    Type = authoring.BodyType switch
+                    {
+                        BodyType.Static => UpdateType.Once,
+                        BodyType.Dynamic => UpdateType.EveryFrame,
+                        _ => UpdateType.WithInterval
+                    },
+                    Interval = authoring.TriggerUpdateInterval
+                });
 
                 if (authoring.BodyType == BodyType.Dynamic)
                 {

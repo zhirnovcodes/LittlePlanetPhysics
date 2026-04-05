@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace LittlePhysics
@@ -40,7 +41,8 @@ namespace LittlePhysics
                 Bodies = singleton.Bodies,
                 BodiesEntities = singleton.BodiesEntities,
                 MaxEntitiesCount = maxEntitiesCount,
-                ECB = ecb
+                ECB = ecb,
+                DeltaTime = SystemAPI.Time.DeltaTime
             }.Schedule(clearJob);
 
             state.Dependency = JobHandle.CombineDependencies(clearJob, importJob);
@@ -72,14 +74,46 @@ namespace LittlePhysics
         public NativeList<Entity> BodiesEntities;
         public int MaxEntitiesCount;
         public EntityCommandBuffer ECB;
+        public float DeltaTime;
 
-        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateTag tag)
+        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
             if (BodiesEntities.Length >= MaxEntitiesCount)
                 return;
 
+            bool shouldUpdate = false;
+
+            switch (tag.Type)
+            {
+                case UpdateType.EveryFrame:
+                    shouldUpdate = true;
+                    break;
+                case UpdateType.Once:
+                    if (tag.WasUpdated == false)
+                    {
+                        tag.WasUpdated = true;
+                        shouldUpdate = true;
+                    }
+                    break;
+                case UpdateType.WithInterval:
+                    if (tag.WasUpdated)
+                    {
+                        shouldUpdate = (int)math.floor(tag.TimeElapsed / tag.Interval) != (int)math.floor((tag.TimeElapsed - DeltaTime) / tag.Interval);
+                    }
+                    else
+                    {
+                        tag.WasUpdated = true;
+                        shouldUpdate = true;
+                    }
+
+                    tag.TimeElapsed += DeltaTime;
+                    break;
+            }
+
+            var bodyData = body.ToBodyData(entity, transform, shouldUpdate);
+
             BodiesEntities.Add(entity);
-            Bodies.TryAdd(entity, body.ToBodyData(entity, transform));
+            Bodies.TryAdd(entity, bodyData);
         }
     }
 }

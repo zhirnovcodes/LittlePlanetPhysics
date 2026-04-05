@@ -86,6 +86,7 @@ namespace LittlePhysics
         public float Bounciness;
         public float Friction;
         public float Hardness;
+        public bool ShouldUpdate;
 
         public DynamicPhysicsData ToDynamicData() => new DynamicPhysicsData
         {

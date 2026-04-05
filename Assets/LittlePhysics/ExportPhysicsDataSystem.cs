@@ -40,7 +40,7 @@ namespace LittlePhysics
         {
             [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
 
-            public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateTag tag)
+            public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateComponent tag)
             {
                 if (body.BodyType == BodyType.Dynamic == false)
                     return;

@@ -156,6 +156,9 @@ namespace LittlePhysics
                 if (!Bodies.TryGetValue(entity, out var body))
                     return;
 
+                if (!body.ShouldUpdate)
+                    return;
+
                 switch (body.BodyType)
                 {
                     case BodyType.Dynamic:

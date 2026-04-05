@@ -11,8 +11,19 @@ namespace LittlePhysics
         Trigger
     }
 
-    public struct PhysicsBodyUpdateTag : IComponentData, IEnableableComponent
+    public enum UpdateType
     {
+        EveryFrame,
+        Once,
+        WithInterval
+    }
+
+    public struct PhysicsBodyUpdateComponent : IComponentData, IEnableableComponent
+    {
+        public UpdateType Type;
+        public float Interval;
+        public bool WasUpdated;
+        public float TimeElapsed;
     }
 
     public struct PhysicsBodyComponent : IComponentData
@@ -27,7 +38,7 @@ namespace LittlePhysics
         public float Friction;
         public float Hardness;
 
-        public PhysicsBodyData ToBodyData(Entity entity, LocalTransform transform) => new PhysicsBodyData
+        public PhysicsBodyData ToBodyData(Entity entity, LocalTransform transform, bool shouldUpdate = true) => new PhysicsBodyData
         {
             Main = entity,
             BodyType = BodyType,
@@ -39,7 +50,8 @@ namespace LittlePhysics
             Mass = Mass,
             Bounciness = Bounciness,
             Friction = Friction,
-            Hardness = Hardness
+            Hardness = Hardness,
+            ShouldUpdate = shouldUpdate
         };
     }
 }

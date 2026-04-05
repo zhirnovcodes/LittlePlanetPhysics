@@ -21,6 +21,7 @@ namespace LittlePhysics
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
+            return;
             state.Dependency = new ApplyVelocitiesJob
             {
                 BodiesEntities = singleton.BodiesEntities,

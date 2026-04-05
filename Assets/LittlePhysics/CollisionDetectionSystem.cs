@@ -48,7 +48,7 @@ namespace LittlePhysics
 
             if (!SystemAPI.HasSingleton<PhysicsSingleton>())
                 return;
-
+            return;
             var physicsSingleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             var physicsSettings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
             var spacialMapSettings = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
@@ -260,4 +260,5 @@ namespace LittlePhysics
             }
         }
     }
+
 }

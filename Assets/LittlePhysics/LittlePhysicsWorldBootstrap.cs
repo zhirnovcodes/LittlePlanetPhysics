@@ -22,7 +22,7 @@ namespace LittlePhysics
 
             ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<LittlePhysicsUpdateSystem>(systemHandle);
 
-            if (!littleSystem.Bodies.IsCreated || !littleSystem.BodiesEntities.IsCreated)
+            if (!littleSystem.Bodies.IsCreated || !littleSystem.BodiesEntities.IsCreated || !littleSystem.BodiesList.IsCreated)
                 return;
 
             var collisionsHandle = state.World.GetExistingSystem<CollisionMapUpdateSystem>();
@@ -51,6 +51,7 @@ namespace LittlePhysics
             {
                 BodiesEntities = littleSystem.BodiesEntities,
                 Bodies = littleSystem.Bodies,
+                BodiesList = littleSystem.BodiesList,
                 CollisionMap = new CollisionMapSingleton
                 {
                     DynamicMap = collisionsSystem.DynamicMap,

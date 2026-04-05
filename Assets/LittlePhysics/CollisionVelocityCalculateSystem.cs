@@ -22,6 +22,7 @@ namespace LittlePhysics
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
+            return;
             state.Dependency = new CalculateCollisionVelocitiesJob
             {
                 BodiesEntities = singleton.BodiesEntities,
@@ -44,6 +45,7 @@ namespace LittlePhysics
 
             public void Execute()
             {
+                /*
                 for (int i = 0; i < BodiesEntities.Length; i++)
                 {
                     var entity = BodiesEntities[i];
@@ -103,7 +105,7 @@ namespace LittlePhysics
                     velocity.LinearVelocity += linearDelta;
                     velocity.AngularVelocity += angularDelta;
                     VelocityLookup[entity] = velocity;
-                }
+                }*/
             }
         }
     }

@@ -32,14 +32,12 @@ namespace LittlePhysics
 
             var clearJob = new ClearJob
             {
-                Bodies = singleton.Bodies,
-                BodiesEntities = singleton.BodiesEntities
+                BodiesList = singleton.BodiesList
             }.Schedule(combinedDep);
 
             var importJob = new ImportPhysicsDataJob
             {
-                Bodies = singleton.Bodies,
-                BodiesEntities = singleton.BodiesEntities,
+                BodiesList = singleton.BodiesList,
                 MaxEntitiesCount = maxEntitiesCount,
                 ECB = ecb,
                 DeltaTime = SystemAPI.Time.DeltaTime
@@ -55,13 +53,11 @@ namespace LittlePhysics
     [BurstCompile]
     public partial struct ClearJob : IJob
     {
-        public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
-        public NativeList<Entity> BodiesEntities;
+        public NativeList<PhysicsBodyData> BodiesList;
 
         public void Execute()
         {
-            Bodies.Clear();
-            BodiesEntities.Clear();
+            BodiesList.Clear();
         }
     }
 
@@ -69,16 +65,14 @@ namespace LittlePhysics
     public partial struct ImportPhysicsDataJob : IJobEntity
     {
         [NativeDisableContainerSafetyRestriction]
-        public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
-        [NativeDisableContainerSafetyRestriction]
-        public NativeList<Entity> BodiesEntities;
+        public NativeList<PhysicsBodyData> BodiesList;
         public int MaxEntitiesCount;
         public EntityCommandBuffer ECB;
         public float DeltaTime;
 
         public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
-            if (BodiesEntities.Length >= MaxEntitiesCount)
+            if (BodiesList.Length >= MaxEntitiesCount)
                 return;
 
             bool shouldUpdate = false;
@@ -112,8 +106,8 @@ namespace LittlePhysics
 
             var bodyData = body.ToBodyData(entity, transform, shouldUpdate);
 
-            BodiesEntities.Add(entity);
-            Bodies.TryAdd(entity, bodyData);
+            tag.Index = BodiesList.Length;
+            BodiesList.Add(bodyData);
         }
     }
 }

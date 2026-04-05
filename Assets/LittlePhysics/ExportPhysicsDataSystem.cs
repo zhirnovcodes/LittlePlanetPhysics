@@ -21,14 +21,14 @@ namespace LittlePhysics
         public void OnUpdate(ref SystemState state)
         {
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
-            if (!singleton.Bodies.IsCreated)
+            if (!singleton.BodiesList.IsCreated)
                 return;
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
             state.Dependency = new ExportPhysicsDataJob
             {
-                Bodies = singleton.Bodies,
+                BodiesList = singleton.BodiesList,
             }.Schedule(combinedDep);
 
             singleton.PhysicsJobHandle = state.Dependency;
@@ -38,16 +38,17 @@ namespace LittlePhysics
         [BurstCompile]
         private partial struct ExportPhysicsDataJob : IJobEntity
         {
-            [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
+            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
 
-            public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateComponent tag)
+            public void Execute(ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateComponent tag)
             {
                 if (body.BodyType == BodyType.Dynamic == false)
                     return;
 
-                if (!Bodies.TryGetValue(entity, out var bodyData))
+                if (tag.Index < 0 || tag.Index >= BodiesList.Length)
                     return;
 
+                var bodyData = BodiesList[tag.Index];
                 transform.Position = bodyData.Position - body.LocalPosition;
                 transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(bodyData.RotationOffset));
             }

@@ -11,6 +11,7 @@ namespace LittlePhysics
     {
         [NoAlias] public NativeList<Entity> BodiesEntities;
         [NoAlias] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
+        [NoAlias] public NativeList<PhysicsBodyData> BodiesList;
 
         public void OnCreate(ref SystemState state)
         {
@@ -21,6 +22,7 @@ namespace LittlePhysics
         {
             if (BodiesEntities.IsCreated) BodiesEntities.Dispose();
             if (Bodies.IsCreated) Bodies.Dispose();
+            if (BodiesList.IsCreated) BodiesList.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -31,6 +33,7 @@ namespace LittlePhysics
                 var capacity = settings.BlobRef.Value.MaxEntitiesCount;
                 BodiesEntities = new NativeList<Entity>(capacity, Allocator.Persistent);
                 Bodies = new NativeParallelHashMap<Entity, PhysicsBodyData>(capacity, Allocator.Persistent);
+                BodiesList = new NativeList<PhysicsBodyData>(capacity, Allocator.Persistent);
             }
 
             if (!SystemAPI.HasSingleton<PhysicsSingleton>())

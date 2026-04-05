@@ -120,6 +120,7 @@ namespace LittlePhysics
     {
         [NoAlias] public NativeList<Entity> BodiesEntities;
         [NoAlias] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
+        [NoAlias] public NativeList<PhysicsBodyData> BodiesList;
         public CollisionMapSingleton CollisionMap;
         public CollisionsSingleton Collisions;
         public SpacialMap SpacialMap;

@@ -24,6 +24,7 @@ namespace LittlePhysics
         public float Interval;
         public bool WasUpdated;
         public float TimeElapsed;
+        public int Index;
     }
 
     public struct PhysicsBodyComponent : IComponentData

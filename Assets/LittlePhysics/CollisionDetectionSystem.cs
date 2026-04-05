@@ -143,9 +143,6 @@ namespace LittlePhysics
 
             private unsafe void CheckDynamicVsDynamic(uint cellKey)
             {
-                if (PairsCount.Value >= MaxPairs)
-                    return;
-
                 if (!DynamicMap.TryGetFirstValue(cellKey, out var entity1, out var outerIt))
                     return;
 

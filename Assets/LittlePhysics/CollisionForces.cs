@@ -140,6 +140,25 @@ namespace LittlePhysics
                 force2 = normal * penetration * math.lerp(MinPower, MaxPower, body1.Hardness);
         }
 
+        /// <summary>
+        /// Converts an impulse applied at a contact point into linear and angular velocity changes.
+        /// Uses sphere moment of inertia: I = (2/5) * m * r^2.
+        /// </summary>
+        public static void ImpulseToVelocity(
+            in PhysicsBodyData body,
+            float3 impulse,
+            float3 contactPoint,
+            out float3 linearVelocityChange,
+            out float3 angularVelocityChange)
+        {
+            float mass = body.Mass;
+            float radius = body.Scale * 0.5f;
+            float inertia = 0.4f * mass * radius * radius;
+            float3 radiusVector = GetRadiusVector(body, contactPoint);
+            linearVelocityChange = impulse / mass;
+            angularVelocityChange = math.cross(radiusVector, impulse) / inertia;
+        }
+
         private static void calculateDynamicVsDynamic(
             in PhysicsBodyData body1,
             in PhysicsBodyData body2,

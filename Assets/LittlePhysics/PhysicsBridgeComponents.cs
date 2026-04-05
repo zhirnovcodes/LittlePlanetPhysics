@@ -109,6 +109,12 @@ namespace LittlePhysics
         };
     }
 
+    public struct PhysicsVelocityData
+    {
+        public float3 LinearVelocity;
+        public float3 AngularVelocity;
+    }
+
     public struct PhysicsSingleton : IComponentData
     {
         [NoAlias] public NativeList<Entity> BodiesEntities;

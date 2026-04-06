@@ -43,7 +43,6 @@ namespace LittlePhysics
                 batchCount = math.min(batchCount, spawn.MaxCount - spawn.CurrentCount);
 
                 var halfScale = spawn.Scale * 0.5f;
-                var hasPrefabBody = physicsBodyLookup.TryGetComponent(spawn.Prefab, out var prefabBody);
 
                 for (int i = 0; i < batchCount; i++)
                 {
@@ -57,12 +56,6 @@ namespace LittlePhysics
 
                     ecb.SetComponent(instance, LocalTransform.FromPosition(position));
 
-                    if (hasPrefabBody)
-                    {
-                        var body = prefabBody;
-                        body.Mass = spawn.Rng.NextFloat(spawn.MassRange.x, spawn.MassRange.y);
-                        ecb.SetComponent(instance, body);
-                    }
                 }
 
                 spawn.CurrentCount += batchCount;

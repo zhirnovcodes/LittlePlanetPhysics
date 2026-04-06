@@ -1,12 +1,34 @@
+using System;
 using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace LittlePhysics
 {
+    public struct CollisionData : IEquatable<CollisionData>
+    {
+        public uint Body1;
+        public uint Body2;
+        public float3 ContactPoint;
+
+        public CollisionData(uint body1, uint body2, float3 contactPoint)
+        {
+            Body1 = body1;
+            Body2 = body2;
+            ContactPoint = contactPoint;
+        }
+
+        public bool Equals(CollisionData other)
+        {
+            return (Body1 == other.Body1 && Body2 == other.Body2)
+                || (Body1 == other.Body2 && Body2 == other.Body1);
+        }
+    }
+
     [BurstCompile]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
     [UpdateAfter(typeof(CollisionMapUpdateSystem))]
@@ -14,8 +36,8 @@ namespace LittlePhysics
     {
         [NoAlias] public NativeParallelMultiHashMap<Entity, CollisionItem> Collisions;
 
-        [NoAlias] public CollisionPairHashMap Pairs;
-        [NoAlias] public CollisionPairHashMap CollisionsNew;
+        [NoAlias] public LittleHashMap<uint> Pairs;
+        [NoAlias] public LittleHashMap<CollisionData> CollisionsNew;
 
         public void OnCreate(ref SystemState state)
         {
@@ -44,7 +66,6 @@ namespace LittlePhysics
             var physicsSingleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             if (!physicsSingleton.CollisionMap.DynamicCollisionMap.IsCreated)
                 return;
-            var physicsSettings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
             var spacialMapSettings = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
 
             var physicsHandle = JobHandle.CombineDependencies(state.Dependency, physicsSingleton.PhysicsJobHandle);
@@ -60,10 +81,11 @@ namespace LittlePhysics
             var pairsCheckJob = new PairsCheckJob
             {
                 DynamicCollisionMap = physicsSingleton.CollisionMap.DynamicCollisionMap,
+                StaticCollisionMap = physicsSingleton.CollisionMap.StaticCollisionMap,
+                TriggersCollisionMap = physicsSingleton.CollisionMap.TriggersCollisionMap,
                 BodiesList = physicsSingleton.BodiesList,
                 PairMap = Pairs,
                 CollisionsMap = CollisionsNew,
-                MaxCollisions = physicsSettings.BlobRef.Value.GetSumEntitiesXCollisions(),
             }.Schedule(totalCells, 16, clearJob);
 
             state.Dependency = pairsCheckJob;
@@ -76,12 +98,12 @@ namespace LittlePhysics
             Collisions = new NativeParallelMultiHashMap<Entity, CollisionItem>(
                 blob.GetSumEntitiesXCollisions(), Allocator.Persistent);
 
-            Pairs = new CollisionPairHashMap(
+            Pairs = new LittleHashMap<uint>(
                 blob.LodData.MaxEntityCount,
                 blob.LodData.MaxPairPerEntity,
                 Allocator.Persistent);
 
-            CollisionsNew = new CollisionPairHashMap(
+            CollisionsNew = new LittleHashMap<CollisionData>(
                 blob.LodData.MaxEntityCount,
                 blob.LodData.MaxCollisionsPerEntity,
                 Allocator.Persistent);
@@ -90,8 +112,8 @@ namespace LittlePhysics
         [BurstCompile]
         private struct ClearJob : IJob
         {
-            public CollisionPairHashMap PairMap;
-            public CollisionPairHashMap CollisionsMap;
+            public LittleHashMap<uint> PairMap;
+            public LittleHashMap<CollisionData> CollisionsMap;
 
             public void Execute()
             {
@@ -104,18 +126,19 @@ namespace LittlePhysics
         private struct PairsCheckJob : IJobParallelFor
         {
             [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
+            [NativeDisableParallelForRestriction] public NativeCollisionMap StaticCollisionMap;
+            [NativeDisableParallelForRestriction] public NativeCollisionMap TriggersCollisionMap;
             [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
 
-            [NativeDisableContainerSafetyRestriction] public CollisionPairHashMap PairMap;
-            [NativeDisableContainerSafetyRestriction] public CollisionPairHashMap CollisionsMap;
-            public int MaxCollisions;
+            [NativeDisableContainerSafetyRestriction] public LittleHashMap<uint> PairMap;
+            [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
 
             public unsafe void Execute(int cellIndex)
             {
                 CheckDynamicVsDynamic((uint)cellIndex);
-                //CheckDynamicVsStatic((uint)cellIndex);
-                //CheckTriggerVsDynamic((uint)cellIndex);
-                //CheckTriggerVsStatic((uint)cellIndex);
+                CheckDynamicVsStatic((uint)cellIndex);
+                CheckTriggerVsDynamic((uint)cellIndex);
+                CheckTriggerVsStatic((uint)cellIndex);
             }
 
             private unsafe void CheckDynamicVsDynamic(uint cellKey)
@@ -131,30 +154,74 @@ namespace LittlePhysics
                 }
             }
 
+            private unsafe void CheckDynamicVsStatic(uint cellKey)
+            {
+                var outerIt = DynamicCollisionMap.GetCellIterator(cellKey);
+                while (DynamicCollisionMap.TraverseCell(ref outerIt, out uint bodyIndexA))
+                {
+                    var innerIt = StaticCollisionMap.GetCellIterator(cellKey);
+                    while (StaticCollisionMap.TraverseCell(ref innerIt, out uint bodyIndexB))
+                    {
+                        CheckCollision(bodyIndexA, bodyIndexB);
+                    }
+                }
+            }
+
+            private unsafe void CheckTriggerVsDynamic(uint cellKey)
+            {
+                var outerIt = TriggersCollisionMap.GetCellIterator(cellKey);
+                while (TriggersCollisionMap.TraverseCell(ref outerIt, out uint bodyIndexA))
+                {
+                    var innerIt = DynamicCollisionMap.GetCellIterator(cellKey);
+                    while (DynamicCollisionMap.TraverseCell(ref innerIt, out uint bodyIndexB))
+                    {
+                        CheckCollision(bodyIndexA, bodyIndexB);
+                    }
+                }
+            }
+
+            private unsafe void CheckTriggerVsStatic(uint cellKey)
+            {
+                var outerIt = TriggersCollisionMap.GetCellIterator(cellKey);
+                while (TriggersCollisionMap.TraverseCell(ref outerIt, out uint bodyIndexA))
+                {
+                    var innerIt = StaticCollisionMap.GetCellIterator(cellKey);
+                    while (StaticCollisionMap.TraverseCell(ref innerIt, out uint bodyIndexB))
+                    {
+                        CheckCollision(bodyIndexA, bodyIndexB);
+                    }
+                }
+            }
+
             private unsafe void CheckCollision(uint bodyIndexA, uint bodyIndexB)
             {
-                if (PairMap.TryAdd(bodyIndexA, bodyIndexB) == false)
-                { 
-                    return; 
+                uint lo = math.min(bodyIndexA, bodyIndexB);
+                uint hi = math.max(bodyIndexA, bodyIndexB);
+
+                if (PairMap.TryAdd(lo, hi) == false)
+                {
+                    return;
                 }
 
                 var bodyA = BodiesList[(int)bodyIndexA];
                 var bodyB = BodiesList[(int)bodyIndexB];
 
-                if (CollisionsMap.CanAdd((uint)bodyIndexA) == false)
+                if (CollisionsMap.CanAdd((uint)bodyIndexA) == false
+                    && CollisionsMap.CanAdd((uint)bodyIndexB) == false)
                 {
                     return;
                 }
 
                 if (CollisionMethods.AreBodiesColliding(bodyA, bodyB, out var contactPoint) == false)
-                { 
-                    return; 
-                }
-
-                if (CollisionsMap.TryAdd((uint)bodyIndexA, (uint)bodyIndexB) == false)
                 {
                     return;
                 }
+
+                var collision = new CollisionData(bodyIndexA, bodyIndexB, contactPoint);
+
+                CollisionsMap.TryAdd((uint)bodyIndexA, collision);
+
+                CollisionsMap.TryAdd((uint)bodyIndexB, collision);
             }
         }
     }

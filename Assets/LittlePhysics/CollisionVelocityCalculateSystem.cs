@@ -49,23 +49,27 @@ namespace LittlePhysics
             [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
 
             [NativeDisableContainerSafetyRestriction]
-            public CollisionPairHashMap CollisionsNew;
+            public LittleHashMap<CollisionData> CollisionsNew;
 
             public ComponentLookup<PhysicsVelocityComponent> VelocityLookup;
 
             public void Execute()
             {
                 var iterator = CollisionsNew.GetIterator();
-                while (CollisionsNew.Traverse(ref iterator, out var pair))
+                while (CollisionsNew.Traverse(ref iterator, out var entry))
                 {
-                    int ia = (int)pair.Item1;
-                    int ib = (int)pair.Item2;
+                    var row = entry.Item1;
+                    var collision = entry.Item2;
+                    uint minBody = collision.Body1 < collision.Body2 ? collision.Body1 : collision.Body2;
+                    if (row != minBody)
+                        continue;
+
+                    int ia = (int)collision.Body1;
+                    int ib = (int)collision.Body2;
 
                     var bodyA = BodiesList[ia];
                     var bodyB = BodiesList[ib];
-
-                    if (!CollisionMethods.AreBodiesColliding(bodyA, bodyB, out float3 contactPoint))
-                        continue; // todo remove
+                    float3 contactPoint = collision.ContactPoint;
 
                     VelocityLookup.TryGetComponent(bodyA.Main, out var velocityA);
                     VelocityLookup.TryGetComponent(bodyB.Main, out var velocityB);

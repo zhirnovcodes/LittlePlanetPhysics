@@ -23,9 +23,9 @@ namespace LittlePhysics
     }
     public struct CollisionMapSingleton
     {
-        [NoAlias] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
-        [NoAlias] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
-        [NoAlias] public NativeParallelHashMap<uint, Entity> StaticMap;
+        [NoAlias] public NativeCollisionMap DynamicCollisionMap;
+        [NoAlias] public NativeCollisionMap TriggersCollisionMap;
+        [NoAlias] public NativeCollisionMap StaticCollisionMap;
     }
 
     public struct CollisionItem

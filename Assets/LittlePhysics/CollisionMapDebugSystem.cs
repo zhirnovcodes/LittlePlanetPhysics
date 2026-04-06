@@ -88,9 +88,9 @@ namespace LittlePhysics
         {
             return bodyType switch
             {
-                BodyType.Dynamic => map.DynamicMap.CountValuesForKey(key),
-                BodyType.Trigger => map.TriggersMap.CountValuesForKey(key),
-                BodyType.Static => map.StaticMap.ContainsKey(key) ? 1 : 0,
+                BodyType.Dynamic => map.DynamicCollisionMap.GetCellCount(key),
+                BodyType.Trigger => map.TriggersCollisionMap.GetCellCount(key),
+                BodyType.Static => map.StaticCollisionMap.GetCellCount(key),
                 _ => 0
             };
         }

@@ -32,12 +32,6 @@ namespace LittlePhysics
 
         public void OnUpdate(ref SystemState state)
         {
-            var mapSystemHandle = state.WorldUnmanaged.GetExistingUnmanagedSystem<CollisionMapUpdateSystem>();
-            ref var mapSystem = ref state.WorldUnmanaged.GetUnsafeSystemRef<CollisionMapUpdateSystem>(mapSystemHandle);
-
-            if (!mapSystem.DynamicCollisionMap.IsCreated)
-                return;
-
             if (!Pairs.IsCreated)
             {
                 var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
@@ -48,6 +42,8 @@ namespace LittlePhysics
                 return;
 
             var physicsSingleton = SystemAPI.GetSingleton<PhysicsSingleton>();
+            if (!physicsSingleton.CollisionMap.DynamicCollisionMap.IsCreated)
+                return;
             var physicsSettings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
             var spacialMapSettings = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
 
@@ -63,7 +59,7 @@ namespace LittlePhysics
 
             var pairsCheckJob = new PairsCheckJob
             {
-                DynamicCollisionMap = mapSystem.DynamicCollisionMap,
+                DynamicCollisionMap = physicsSingleton.CollisionMap.DynamicCollisionMap,
                 BodiesList = physicsSingleton.BodiesList,
                 PairMap = Pairs,
                 CollisionsMap = CollisionsNew,
@@ -130,9 +126,6 @@ namespace LittlePhysics
                     var innerIt = outerIt;
                     while (DynamicCollisionMap.TraverseCell(ref innerIt, out uint bodyIndexB))
                     {
-                        if (!PairMap.TryAdd(bodyIndexA, bodyIndexB))
-                            continue;
-
                         CheckCollision(bodyIndexA, bodyIndexB);
                     }
                 }
@@ -140,6 +133,11 @@ namespace LittlePhysics
 
             private unsafe void CheckCollision(uint bodyIndexA, uint bodyIndexB)
             {
+                if (PairMap.TryAdd(bodyIndexA, bodyIndexB) == false)
+                { 
+                    return; 
+                }
+
                 var bodyA = BodiesList[(int)bodyIndexA];
                 var bodyB = BodiesList[(int)bodyIndexB];
 

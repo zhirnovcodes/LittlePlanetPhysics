@@ -7,9 +7,11 @@ namespace LittlePhysics
     public struct LodPhysicsData
     {
         public float2 DistanceRange;
-        public int4 MaxBodyCountPerLod;
         public int MaxEntityCount;
-        public int MaxEntitiesInCell;
+
+        public int MaxDynamicsInCells;
+        public int MaxTriggersInCells;
+        public int MaxStaticInCells;
 
         public int MaxCollisionsPerEntity;
         public int MaxCollisionsPerEntityX2;
@@ -30,8 +32,7 @@ namespace LittlePhysics
         public int MaxEntitiesCount;
         public LodPhysicsData LodData;
 
-        public int GetMaxEntitiesInCell() => LodData.MaxEntitiesInCell;
-        public int GetSumEntitiesXCells() => LodData.MaxEntitiesInCell * LodData.MaxCellPerEntity;
+        public int GetSumEntitiesXCells() => LodData.MaxDynamicsInCells * LodData.MaxCellPerEntity;
         public int GetSumEntitiesXCollisions() => LodData.MaxEntityCount * LodData.MaxCollisionsPerEntity;
         public int GetSumEntitiesXPairs() => LodData.MaxEntityCount * LodData.MaxPairPerEntity;
     }

@@ -31,7 +31,7 @@ namespace LittlePhysics
 
             ref var collisionsSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionMapUpdateSystem>(collisionsHandle);
 
-            if (!collisionsSystem.DynamicMap.IsCreated)
+            if (!collisionsSystem.DynamicCollisionMap.IsCreated)
                 return;
 
             var detectionHandle = state.World.GetExistingSystem<CollisionDetectionSystem>();
@@ -54,9 +54,9 @@ namespace LittlePhysics
                 BodiesList = littleSystem.BodiesList,
                 CollisionMap = new CollisionMapSingleton
                 {
-                    DynamicMap = collisionsSystem.DynamicMap,
-                    TriggersMap = collisionsSystem.TriggersMap,
-                    StaticMap = collisionsSystem.StaticMap
+                    DynamicCollisionMap = collisionsSystem.DynamicCollisionMap,
+                    TriggersCollisionMap = collisionsSystem.TriggersCollisionMap,
+                    StaticCollisionMap = collisionsSystem.StaticCollisionMap
                 },
                 Collisions = new CollisionsSingleton
                 {

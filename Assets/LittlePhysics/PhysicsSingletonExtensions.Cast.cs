@@ -52,13 +52,15 @@ namespace LittlePhysics
 
             while (physics.SpacialMap.TraverseLineNext(start, direction, ref cellIterator, out int cellId))
             {
-                if (shouldFindDynamic &&
-                    physics.CollisionMap.DynamicMap.TryGetFirstValue((uint)cellId, out Entity dynEntity, out var dynIt))
+                if (shouldFindDynamic)
                 {
-                    do
+                    var dynMap = physics.CollisionMap.DynamicCollisionMap;
+                    var dynIt = dynMap.GetCellIterator((uint)cellId);
+                    while (dynMap.TraverseCell(ref dynIt, out uint bodyIndex))
                     {
-                        if (physics.Bodies.TryGetValue(dynEntity, out PhysicsBodyData body) &&
-                            CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
+                        var body = physics.BodiesList[(int)bodyIndex];
+                        Entity dynEntity = body.Main;
+                        if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
                             float distSq = math.distancesq(start, contact);
                             if (distSq < closestDistSq)
@@ -69,7 +71,6 @@ namespace LittlePhysics
                             }
                         }
                     }
-                    while (physics.CollisionMap.DynamicMap.TryGetNextValue(out dynEntity, ref dynIt));
                 }
 
                 if (shouldFindStatic)
@@ -77,13 +78,15 @@ namespace LittlePhysics
                     CheckStatic(ref physics, start, ref result, ref closestDistSq, ref found, line, cellId);
                 }
 
-                if (shouldFindTrigger &&
-                    physics.CollisionMap.TriggersMap.TryGetFirstValue((uint)cellId, out Entity trigEntity, out var trigIt))
+                if (shouldFindTrigger)
                 {
-                    do
+                    var trigMap = physics.CollisionMap.TriggersCollisionMap;
+                    var trigIt = trigMap.GetCellIterator((uint)cellId);
+                    while (trigMap.TraverseCell(ref trigIt, out uint bodyIndex))
                     {
-                        if (physics.Bodies.TryGetValue(trigEntity, out PhysicsBodyData body) &&
-                            CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
+                        var body = physics.BodiesList[(int)bodyIndex];
+                        Entity trigEntity = body.Main;
+                        if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
                             float distSq = math.distancesq(start, contact);
                             if (distSq < closestDistSq)
@@ -94,7 +97,6 @@ namespace LittlePhysics
                             }
                         }
                     }
-                    while (physics.CollisionMap.TriggersMap.TryGetNextValue(out trigEntity, ref trigIt));
                 }
             }
 
@@ -103,28 +105,25 @@ namespace LittlePhysics
 
         private static void CheckStatic(ref PhysicsSingleton physics, float3 start, ref LineCastResult result, ref float closestDistSq, ref bool found, Line line, int cellId)
         {
-            if (physics.CollisionMap.StaticMap.TryGetValue((uint)cellId, out Entity staticEntity) == false)
+            var staticMap = physics.CollisionMap.StaticCollisionMap;
+            var it = staticMap.GetCellIterator((uint)cellId);
+            while (staticMap.TraverseCell(ref it, out uint bodyIndex))
             {
-                return;
-            }
+                var body = physics.BodiesList[(int)bodyIndex];
+                Entity staticEntity = body.Main;
 
-            if (physics.Bodies.TryGetValue(staticEntity, out PhysicsBodyData body) == false)
-            {
-                UnityEngine.Debug.Log("1");
-                return;
-            }
+                if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact) == false)
+                {
+                    continue;
+                }
 
-            if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact) == false)
-            {
-                return;
-            }
-
-            float distSq = math.distancesq(start, contact);
-            if (distSq < closestDistSq)
-            {
-                closestDistSq = distSq;
-                result = new LineCastResult { Target = staticEntity, Contact = contact };
-                found = true;
+                float distSq = math.distancesq(start, contact);
+                if (distSq < closestDistSq)
+                {
+                    closestDistSq = distSq;
+                    result = new LineCastResult { Target = staticEntity, Contact = contact };
+                    found = true;
+                }
             }
         }
 
@@ -147,49 +146,54 @@ namespace LittlePhysics
             while (count < results.Length &&
                    physics.SpacialMap.TraverseLineNext(start, direction, ref cellIterator, out int cellId))
             {
-                if ((filter.Types & CastFilter.BodyTypes.Dynamic) != 0 &&
-                    physics.CollisionMap.DynamicMap.TryGetFirstValue((uint)cellId, out Entity dynEntity, out var dynIt))
+                if ((filter.Types & CastFilter.BodyTypes.Dynamic) != 0)
                 {
-                    do
+                    var dynMap = physics.CollisionMap.DynamicCollisionMap;
+                    var dynIt = dynMap.GetCellIterator((uint)cellId);
+                    while (count < results.Length && dynMap.TraverseCell(ref dynIt, out uint bodyIndex))
                     {
-                        if (count < results.Length &&
-                            physics.Bodies.TryGetValue(dynEntity, out PhysicsBodyData body) &&
-                            CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
+                        var body = physics.BodiesList[(int)bodyIndex];
+                        Entity dynEntity = body.Main;
+                        if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
                             results[count++] = new LineCastResult { Target = dynEntity, Contact = contact };
                         }
                     }
-                    while (physics.CollisionMap.DynamicMap.TryGetNextValue(out dynEntity, ref dynIt));
                 }
 
                 if (count < results.Length &&
-                    (filter.Types & CastFilter.BodyTypes.Static) != 0 &&
-                    physics.CollisionMap.StaticMap.TryGetValue((uint)cellId, out Entity staticEntity))
+                    (filter.Types & CastFilter.BodyTypes.Static) != 0)
                 {
-                    if (physics.Bodies.TryGetValue(staticEntity, out PhysicsBodyData body) &&
-                        CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
+                    var staticMap = physics.CollisionMap.StaticCollisionMap;
+                    var staticIt = staticMap.GetCellIterator((uint)cellId);
+                    while (count < results.Length && staticMap.TraverseCell(ref staticIt, out uint bodyIndex))
                     {
-                        results[count++] = new LineCastResult { Target = staticEntity, Contact = contact };
+                        var body = physics.BodiesList[(int)bodyIndex];
+                        Entity staticEntity = body.Main;
+                        if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
+                        {
+                            results[count++] = new LineCastResult { Target = staticEntity, Contact = contact };
+                        }
                     }
                 }
 
-                if ((filter.Types & CastFilter.BodyTypes.Trigger) != 0 &&
-                    physics.CollisionMap.TriggersMap.TryGetFirstValue((uint)cellId, out Entity trigEntity, out var trigIt))
+                if ((filter.Types & CastFilter.BodyTypes.Trigger) != 0)
                 {
-                    do
+                    var trigMap = physics.CollisionMap.TriggersCollisionMap;
+                    var trigIt = trigMap.GetCellIterator((uint)cellId);
+                    while (count < results.Length && trigMap.TraverseCell(ref trigIt, out uint bodyIndex))
                     {
-                        if (count < results.Length &&
-                            physics.Bodies.TryGetValue(trigEntity, out PhysicsBodyData body) &&
-                            CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
+                        var body = physics.BodiesList[(int)bodyIndex];
+                        Entity trigEntity = body.Main;
+                        if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
                             results[count++] = new LineCastResult { Target = trigEntity, Contact = contact };
                         }
                     }
-                    while (physics.CollisionMap.TriggersMap.TryGetNextValue(out trigEntity, ref trigIt));
                 }
             }
 
-            SortLineCastResults(start, ref results, count); 
+            SortLineCastResults(start, ref results, count);
 
             return count;
         }

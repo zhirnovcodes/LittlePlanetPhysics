@@ -1,4 +1,3 @@
-using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -12,13 +11,9 @@ namespace LittlePhysics
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
     public partial struct CollisionMapUpdateSystem : ISystem
     {
-        [NoAlias] public NativeArray<int> DynamicInCellsCount;
-        [NoAlias] public NativeArray<int> TriggersInCellsCount;
         [NoAlias] public NativeCollisionMap DynamicCollisionMap;
-
-        [NoAlias] public NativeParallelMultiHashMap<uint, Entity> DynamicMap;
-        [NoAlias] public NativeParallelMultiHashMap<uint, Entity> TriggersMap;
-        [NoAlias] public NativeParallelHashMap<uint, Entity> StaticMap;
+        [NoAlias] public NativeCollisionMap TriggersCollisionMap;
+        [NoAlias] public NativeCollisionMap StaticCollisionMap;
 
         [NoAlias] public NativeArray<Random> Randoms;
 
@@ -31,18 +26,15 @@ namespace LittlePhysics
 
         public void OnDestroy(ref SystemState state)
         {
-            if (DynamicInCellsCount.IsCreated) DynamicInCellsCount.Dispose();
-            if (TriggersInCellsCount.IsCreated) TriggersInCellsCount.Dispose();
             if (DynamicCollisionMap.IsCreated) DynamicCollisionMap.Dispose();
-            if (DynamicMap.IsCreated) DynamicMap.Dispose();
-            if (TriggersMap.IsCreated) TriggersMap.Dispose();
-            if (StaticMap.IsCreated) StaticMap.Dispose();
+            if (TriggersCollisionMap.IsCreated) TriggersCollisionMap.Dispose();
+            if (StaticCollisionMap.IsCreated) StaticCollisionMap.Dispose();
             if (Randoms.IsCreated) Randoms.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!DynamicInCellsCount.IsCreated)
+            if (!DynamicCollisionMap.IsCreated)
             {
                 var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
                 var spacialMapSingleton = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
@@ -64,7 +56,9 @@ namespace LittlePhysics
 
             var clearJob = new ClearJob
             {
-                DynamicCollisionMap = DynamicCollisionMap
+                DynamicCollisionMap = DynamicCollisionMap,
+                TriggersCollisionMap = TriggersCollisionMap,
+                StaticCollisionMap = StaticCollisionMap
             }.Schedule(physicsHandle);
 
             var addDynamicJob = new AddBodiesJob
@@ -72,9 +66,10 @@ namespace LittlePhysics
                 BodiesList = physicsSingleton.BodiesList,
                 SpatialMap = physicsSingleton.SpacialMap,
                 DynamicCollisionMap = DynamicCollisionMap,
+                TriggersCollisionMap = TriggersCollisionMap,
+                StaticCollisionMap = StaticCollisionMap,
                 Randoms = Randoms,
                 MaxCellsPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntity,
-                MaxEntitiesInCell = physicsSettings.BlobRef.Value.LodData.MaxEntitiesInCell
             }.Schedule(physicsSingleton.BodiesList, 16, clearJob);
 
             state.Dependency = addDynamicJob;
@@ -85,22 +80,12 @@ namespace LittlePhysics
 
         private void InitCollections(ref PhysicsSettingsBlobAsset blob, int maxBodiesForRandoms, int3 gridSize, uint seed)
         {
-            int totalCells = gridSize.x * gridSize.y * gridSize.z;
+            uint mapSize = (uint)gridSize.x;
+            ref LodPhysicsData lod = ref blob.LodData;
 
-            DynamicInCellsCount = new NativeArray<int>(totalCells, Allocator.Persistent);
-            TriggersInCellsCount = new NativeArray<int>(totalCells, Allocator.Persistent);
-
-            DynamicCollisionMap = new NativeCollisionMap(
-                (uint)gridSize.x, (uint)blob.GetMaxEntitiesInCell(), Allocator.Persistent);
-
-            DynamicMap = new NativeParallelMultiHashMap<uint, Entity>(
-                totalCells * blob.GetMaxEntitiesInCell(), Allocator.Persistent);
-
-            TriggersMap = new NativeParallelMultiHashMap<uint, Entity>(
-                totalCells * blob.GetMaxEntitiesInCell(), Allocator.Persistent);
-
-            StaticMap = new NativeParallelHashMap<uint, Entity>(
-                totalCells, Allocator.Persistent);
+            DynamicCollisionMap = new NativeCollisionMap(mapSize, (uint)lod.MaxDynamicsInCells, Allocator.Persistent);
+            TriggersCollisionMap = new NativeCollisionMap(mapSize, (uint)lod.MaxTriggersInCells, Allocator.Persistent);
+            StaticCollisionMap = new NativeCollisionMap(mapSize, (uint)lod.MaxStaticInCells, Allocator.Persistent);
 
             Randoms = new NativeArray<Random>(maxBodiesForRandoms, Allocator.Persistent);
             for (int i = 0; i < maxBodiesForRandoms; i++)
@@ -111,10 +96,14 @@ namespace LittlePhysics
         private struct ClearJob : IJob
         {
             public NativeCollisionMap DynamicCollisionMap;
+            public NativeCollisionMap TriggersCollisionMap;
+            public NativeCollisionMap StaticCollisionMap;
 
             public void Execute()
             {
                 DynamicCollisionMap.Clear();
+                TriggersCollisionMap.Clear();
+                StaticCollisionMap.Clear();
             }
         }
 
@@ -125,10 +114,11 @@ namespace LittlePhysics
             [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
 
             [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
+            [NativeDisableParallelForRestriction] public NativeCollisionMap TriggersCollisionMap;
+            [NativeDisableParallelForRestriction] public NativeCollisionMap StaticCollisionMap;
             [NativeDisableParallelForRestriction] public NativeArray<Random> Randoms;
 
             public int MaxCellsPerEntity;
-            public int MaxEntitiesInCell;
 
             public void Execute(int index)
             {
@@ -161,11 +151,11 @@ namespace LittlePhysics
 
                 if (totalCellsInArea <= MaxCellsPerEntity)
                 {
-                    AddToDynamicMap(body.Main, body.Position, body.Scale, startCellIndex, cubeSize, index);
+                    AddToDynamicMap(body.Position, body.Scale, startCellIndex, cubeSize, index);
                 }
                 else
                 {
-                    AddDynamicToMapOptimized(body.Main, body.Position, body.Scale, startCellIndex, cubeSize, ref random, index);
+                    AddDynamicToMapOptimized(body.Position, body.Scale, startCellIndex, cubeSize, ref random, index);
                 }
 
                 Randoms[index] = random;
@@ -176,7 +166,7 @@ namespace LittlePhysics
                 SpatialMap.GetCellIndices(body.Position, body.Scale, out int startCellIndex, out int3 cellSize);
                 int cubeSize = math.max(math.max(cellSize.x, cellSize.y), cellSize.z);
 
-                AddToStaticMap(body.Main, body.Position, body.Scale, startCellIndex, cubeSize);
+                AddToStaticMap(body.Position, body.Scale, startCellIndex, cubeSize, index);
             }
 
             private void AddBodyToTrigger(int index, PhysicsBodyData body)
@@ -189,84 +179,60 @@ namespace LittlePhysics
 
                 if (totalCellsInArea <= MaxCellsPerEntity)
                 {
-                    AddToTriggersMap(body.Main, body.Position, body.Scale, startCellIndex, cubeSize);
+                    AddToTriggersMap(body.Position, body.Scale, startCellIndex, cubeSize, index);
                 }
                 else
                 {
-                    AddTriggerToMapOptimized(body.Main, body.Position, body.Scale, startCellIndex, cubeSize, ref random);
+                    AddTriggerToMapOptimized(body.Position, body.Scale, startCellIndex, cubeSize, ref random, index);
                 }
 
                 Randoms[index] = random;
             }
 
-            private void AddToDynamicMap(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
+            private void AddToDynamicMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
                 while (SpatialMap.TraverseCubeNext(startCellIndex, cubeSize, ref iterator, out int cellIndex))
                 {
-                    if (DynamicCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex))
-                    {
-                        //DynamicMap.Add((uint)cellIndex, entity);
-                    }
+                    DynamicCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddDynamicToMapOptimized(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize, ref Random random, int bodyIndex)
+            private void AddDynamicToMapOptimized(float3 position, float scale, int startCellIndex, int cubeSize, ref Random random, int bodyIndex)
             {
                 var iterator = new TraverseCubeOptimizedIterator();
                 while (SpatialMap.TraverseCubeOptimizedNext(startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
                 {
-                    if (DynamicCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex))
-                    {
-                        //DynamicMap.Add((uint)cellIndex, entity);
-                    }
+                    DynamicCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddToStaticMap(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize)
+            private void AddToStaticMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
                 while (SpatialMap.TraverseSphereNext(position, scale, startCellIndex, cubeSize, ref iterator, out int cellIndex))
                 {
-                    //StaticMap.TryAdd((uint)cellIndex, entity);
+                    StaticCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddToTriggersMap(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize)
+            private void AddToTriggersMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
                 while (SpatialMap.TraverseSphereNext(position, scale, startCellIndex, cubeSize, ref iterator, out int cellIndex))
                 {
-                    //if (CanAddTrigger(cellIndex))
-                    {
-                        //TriggersMap.Add((uint)cellIndex, entity);
-                    }
+                    TriggersCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddTriggerToMapOptimized(Entity entity, float3 position, float scale, int startCellIndex, int cubeSize, ref Random random)
+            private void AddTriggerToMapOptimized(float3 position, float scale, int startCellIndex, int cubeSize, ref Random random, int bodyIndex)
             {
                 var iterator = new TraverseCubeOptimizedIterator();
                 while (SpatialMap.TraverseSphereOptimizedNext(position, scale, startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
                 {
-                    //if (CanAddTrigger(cellIndex))
-                    {
-                        //TriggersMap.Add((uint)cellIndex, entity);
-                    }
+                    TriggersCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
-            /*
-            private unsafe bool CanAddTrigger(int cellIndex)
-            {
-                ref int count = ref UnsafeUtility.ArrayElementAsRef<int>(TriggersInCellsCount.GetUnsafePtr(), cellIndex);
-                int prev = Interlocked.Increment(ref count) - 1;
-                if (prev >= MaxEntitiesInCell)
-                {
-                    Interlocked.Decrement(ref count);
-                    return false;
-                }
-                return true;
-            }*/
         }
     }
 }

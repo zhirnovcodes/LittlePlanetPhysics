@@ -168,6 +168,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.PhysicsSettingsAuthoring
   MaxEntitiesCount: 1000000
   LodData:
+    DistanceRange:
+      x: 0
+      y: 0
+    MaxBodyCountPerLod:
+      x: 0
+      y: 0
+      z: 0
+      w: 0
     MaxEntityCount: 50000
     MaxEntitiesInCell: 1
     MaxCollisionsPerEntity: 16

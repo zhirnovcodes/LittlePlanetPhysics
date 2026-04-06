@@ -1,23 +1,12 @@
-using System;
+﻿using System;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System.Threading;
 
-public struct CollisionPairSingleIterator
-{
-    internal int CurrentIndex;
-    internal int Row;
-}
-
-public struct CollisionPairIterator
-{
-    internal int CurrentIndex;
-}
-
-public struct CollisionPairHashMap : IDisposable
+public struct LittleHashMap<T> : IDisposable where T : unmanaged, IEquatable<T>
 {
     [NativeDisableParallelForRestriction]
-    private NativeArray<uint> Pairs;
+    private NativeArray<T> Values;
 
     [NativeDisableParallelForRestriction]
     private NativeArray<int> Counts;
@@ -28,34 +17,27 @@ public struct CollisionPairHashMap : IDisposable
     private readonly int MaxEntities;
     private readonly int MaxPairsPerEntity;
 
-    public CollisionPairHashMap(int maxEntities, int maxPairsPerEntity, Allocator allocator)
+    public LittleHashMap(int maxEntities, int maxPairsPerEntity, Allocator allocator)
     {
         MaxEntities = maxEntities;
         MaxPairsPerEntity = maxPairsPerEntity;
 
-        Pairs = new NativeArray<uint>(maxEntities * maxPairsPerEntity, allocator);
+        Values = new NativeArray<T>(maxEntities * maxPairsPerEntity, allocator);
         Counts = new NativeArray<int>(maxEntities, allocator);
         Locks = new NativeArray<int>(maxEntities, allocator);
     }
 
-    public bool IsCreated => Pairs.IsCreated;
+    public bool IsCreated => Values.IsCreated;
 
-    public bool TryAdd(uint entityA, uint entityB)
+    public bool TryAdd(uint entityA, T value)
     {
-        // Normalize order: A < B
-        if (entityA > entityB)
-            (entityA, entityB) = (entityB, entityA);
-
-        if (entityA == entityB)
-            return false;
-
         if (entityA >= MaxEntities)
             return false;
 
         int Row = (int)entityA;
 
         SpinLock(Row);
-        bool Result = AddPairUnsafe(Row, entityB);
+        bool Result = AddPairUnsafe(Row, value);
         SpinUnlock(Row);
 
         return Result;
@@ -96,7 +78,7 @@ public struct CollisionPairHashMap : IDisposable
         }
     }
 
-    private bool AddPairUnsafe(int row, uint entityB)
+    private bool AddPairUnsafe(int row, T value)
     {
         int Count = Counts[row];
 
@@ -105,25 +87,22 @@ public struct CollisionPairHashMap : IDisposable
 
         int BaseIndex = row * MaxPairsPerEntity;
 
-        // Check for duplicate
+        // Check for duplicate using IEquatable<T>
         for (int i = 0; i < Count; i++)
         {
-            if (Pairs[BaseIndex + i] == entityB)
+            if (Values[BaseIndex + i].Equals(value))
                 return false;
         }
 
-        // Add new pair
-        Pairs[BaseIndex + Count] = entityB;
+        // Add new value
+        Values[BaseIndex + Count] = value;
         Counts[row] = Count + 1;
 
         return true;
     }
 
-    public bool Contains(uint entityA, uint entityB)
+    public bool Contains(uint entityA, T value)
     {
-        if (entityA > entityB)
-            (entityA, entityB) = (entityB, entityA);
-
         if (entityA >= MaxEntities)
             return false;
 
@@ -133,40 +112,40 @@ public struct CollisionPairHashMap : IDisposable
 
         for (int i = 0; i < Count; i++)
         {
-            if (Pairs[BaseIndex + i] == entityB)
+            if (Values[BaseIndex + i].Equals(value))
                 return true;
         }
 
         return false;
     }
 
-    public CollisionPairIterator GetIterator()
+    public Iterator GetIterator()
     {
-        return new CollisionPairIterator
+        return new Iterator
         {
             CurrentIndex = 0
         };
     }
 
-    public CollisionPairSingleIterator GetSingleIterator(int row)
+    public SingleRowIterator GetSingleIterator(int row)
     {
-        return new CollisionPairSingleIterator
+        return new SingleRowIterator
         {
             CurrentIndex = 0,
             Row = row
         };
     }
 
-    public bool Traverse(ref CollisionPairIterator iterator, out (uint, uint) pair)
+    public bool Traverse(ref Iterator iterator, out (uint, T) pair)
     {
-        while (iterator.CurrentIndex < Pairs.Length)
+        while (iterator.CurrentIndex < Values.Length)
         {
             int Row = iterator.CurrentIndex / MaxPairsPerEntity;
             int Slot = iterator.CurrentIndex % MaxPairsPerEntity;
 
             if (Row < MaxEntities && Slot < Counts[Row])
             {
-                pair = ((uint)Row, Pairs[iterator.CurrentIndex]);
+                pair = ((uint)Row, Values[iterator.CurrentIndex]);
                 iterator.CurrentIndex++;
                 return true;
             }
@@ -174,24 +153,24 @@ public struct CollisionPairHashMap : IDisposable
             iterator.CurrentIndex++;
         }
 
-        pair = (0, 0);
+        pair = (0, default);
         return false;
     }
 
-    public bool Traverse(ref CollisionPairSingleIterator iterator, out (uint, uint) pair)
+    public bool Traverse(ref SingleRowIterator iterator, out (uint, T) pair)
     {
         var count = Counts[iterator.Row];
-        
+
         if (iterator.CurrentIndex >= count)
         {
-            pair = (0, 0);
+            pair = (0, default);
             return false;
         }
-        
+
         int index = iterator.Row * MaxPairsPerEntity + iterator.CurrentIndex;
         iterator.CurrentIndex++;
 
-        pair = ((uint)iterator.Row, Pairs[index]);
+        pair = ((uint)iterator.Row, Values[index]);
         return true;
     }
 
@@ -215,13 +194,23 @@ public struct CollisionPairHashMap : IDisposable
 
     public void Dispose()
     {
-        if (Pairs.IsCreated)
-            Pairs.Dispose();
+        if (Values.IsCreated)
+            Values.Dispose();
 
         if (Counts.IsCreated)
             Counts.Dispose();
 
         if (Locks.IsCreated)
             Locks.Dispose();
+    }
+    public struct SingleRowIterator
+    {
+        internal int CurrentIndex;
+        internal int Row;
+    }
+
+    public struct Iterator
+    {
+        internal int CurrentIndex;
     }
 }

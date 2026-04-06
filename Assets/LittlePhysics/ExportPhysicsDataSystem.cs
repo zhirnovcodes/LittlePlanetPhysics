@@ -45,6 +45,9 @@ namespace LittlePhysics
                 if (body.BodyType == BodyType.Dynamic == false)
                     return;
 
+                if (!tag.IsEnabled)
+                    return;
+
                 if (tag.Index < 0 || tag.Index >= BodiesList.Length)
                     return;
 

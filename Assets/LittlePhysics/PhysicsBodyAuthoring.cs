@@ -42,7 +42,10 @@ namespace LittlePhysics
                         BodyType.Dynamic => UpdateType.EveryFrame,
                         _ => UpdateType.WithInterval
                     },
-                    Interval = authoring.TriggerUpdateInterval
+                    Interval = authoring.TriggerUpdateInterval,
+                    Index = -1,
+                    LodIndex = 0,
+                    IsEnabled = true
                 });
 
                 if (authoring.BodyType == BodyType.Dynamic)

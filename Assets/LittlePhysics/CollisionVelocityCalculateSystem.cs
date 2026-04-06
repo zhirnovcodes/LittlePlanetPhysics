@@ -1,5 +1,6 @@
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -22,12 +23,19 @@ namespace LittlePhysics
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
-            return;
+            var detectionHandle = state.WorldUnmanaged.GetExistingUnmanagedSystem<CollisionDetectionSystem>();
+            ref var detectionSystem = ref state.WorldUnmanaged.GetUnsafeSystemRef<CollisionDetectionSystem>(detectionHandle);
+
+            if (!singleton.BodiesList.IsCreated || !detectionSystem.CollisionsNew.IsCreated)
+                return;
+
+            if (singleton.BodiesList.Length == 0)
+                return;
+
             state.Dependency = new CalculateCollisionVelocitiesJob
             {
-                BodiesEntities = singleton.BodiesEntities,
-                Bodies = singleton.Bodies,
-                Collisions = singleton.Collisions.Collisions,
+                BodiesList = singleton.BodiesList,
+                CollisionsNew = detectionSystem.CollisionsNew,
                 VelocityLookup = SystemAPI.GetComponentLookup<PhysicsVelocityComponent>(false)
             }.Schedule(combinedDep);
 
@@ -38,74 +46,64 @@ namespace LittlePhysics
         [BurstCompile]
         private struct CalculateCollisionVelocitiesJob : IJob
         {
-            [ReadOnly] public NativeList<Entity> BodiesEntities;
-            [ReadOnly] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
-            [ReadOnly] public NativeParallelMultiHashMap<Entity, CollisionItem> Collisions;
+            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
+
+            [NativeDisableContainerSafetyRestriction]
+            public CollisionPairHashMap CollisionsNew;
+
             public ComponentLookup<PhysicsVelocityComponent> VelocityLookup;
 
             public void Execute()
             {
-                /*
-                for (int i = 0; i < BodiesEntities.Length; i++)
+                var iterator = CollisionsNew.GetIterator();
+                while (CollisionsNew.Traverse(ref iterator, out var pair))
                 {
-                    var entity = BodiesEntities[i];
+                    int ia = (int)pair.Item1;
+                    int ib = (int)pair.Item2;
 
-                    if (!Bodies.TryGetValue(entity, out var body))
-                        continue;
+                    var bodyA = BodiesList[ia];
+                    var bodyB = BodiesList[ib];
 
-                    if (body.BodyType != BodyType.Dynamic)
-                        continue;
+                    if (!CollisionMethods.AreBodiesColliding(bodyA, bodyB, out float3 contactPoint))
+                        continue; // todo remove
 
-                    if (!Collisions.TryGetFirstValue(entity, out var collision, out var iterator))
-                        continue;
+                    VelocityLookup.TryGetComponent(bodyA.Main, out var velocityA);
+                    VelocityLookup.TryGetComponent(bodyB.Main, out var velocityB);
 
-                    if (!VelocityLookup.TryGetComponent(entity, out var velocity))
-                        continue;
+                    var vel1 = velocityA.ToVelocityData();
+                    var vel2 = velocityB.ToVelocityData();
 
-                    float3 linearDelta = float3.zero;
-                    float3 angularDelta = float3.zero;
+                    CollisionForces.GetCollisionImpulses(
+                        bodyA, bodyB, vel1, vel2, contactPoint,
+                        out float3 impulse1, out float3 impulse2);
 
-                    do
+                    CollisionForces.GetPushOutForce(
+                        bodyA, bodyB, contactPoint,
+                        out float3 pushForce1, out float3 pushForce2);
+
+                    float3 total1 = impulse1 + pushForce1;
+                    float3 total2 = impulse2 + pushForce2;
+
+                    if (bodyA.BodyType == BodyType.Dynamic)
                     {
-                        if (!Bodies.TryGetValue(collision.Target, out var targetBody))
-                            continue;
-
-                        var vel1 = new PhysicsVelocityData
-                        {
-                            LinearVelocity = velocity.LinearVelocity,
-                            AngularVelocity = velocity.AngularVelocity
-                        };
-
-                        var vel2 = new PhysicsVelocityData();
-                        if (VelocityLookup.TryGetComponent(collision.Target, out var targetVelocity))
-                        {
-                            vel2.LinearVelocity = targetVelocity.LinearVelocity;
-                            vel2.AngularVelocity = targetVelocity.AngularVelocity;
-                        }
-
-                        CollisionForces.GetCollisionImpulses(
-                            body, targetBody, vel1, vel2, collision.ContactPoint,
-                            out var impulse, out _);
-
-                        CollisionForces.GetPushOutForce(
-                            body, targetBody, collision.ContactPoint,
-                            out var pushForce, out _);
-
-                        CollisionForces.ImpulseToVelocity(body, impulse, collision.ContactPoint,
-                            out var impulseLinear, out var impulseAngular);
-
-                        CollisionForces.ImpulseToVelocity(body, pushForce, collision.ContactPoint,
-                            out var pushLinear, out var pushAngular);
-
-                        linearDelta += impulseLinear + pushLinear;
-                        angularDelta += impulseAngular + pushAngular;
+                        CollisionForces.ImpulseToVelocity(
+                            bodyA, total1, contactPoint,
+                            out float3 dLinearA, out float3 dAngularA);
+                        velocityA.Linear += dLinearA;
+                        velocityA.Angular += dAngularA;
+                        VelocityLookup[bodyA.Main] = velocityA;
                     }
-                    while (Collisions.TryGetNextValue(out collision, ref iterator));
 
-                    velocity.LinearVelocity += linearDelta;
-                    velocity.AngularVelocity += angularDelta;
-                    VelocityLookup[entity] = velocity;
-                }*/
+                    if (bodyB.BodyType == BodyType.Dynamic)
+                    {
+                        CollisionForces.ImpulseToVelocity(
+                            bodyB, total2, contactPoint,
+                            out float3 dLinearB, out float3 dAngularB);
+                        velocityB.Linear += dLinearB;
+                        velocityB.Angular += dAngularB;
+                        VelocityLookup[bodyB.Main] = velocityB;
+                    }
+                }
             }
         }
     }

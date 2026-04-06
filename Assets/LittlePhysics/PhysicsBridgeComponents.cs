@@ -86,7 +86,8 @@ namespace LittlePhysics
         public float Bounciness;
         public float Friction;
         public float Hardness;
-        public bool ShouldUpdate;
+        public bool ShouldUpdateMap;
+        public int LodIndex;
 
         public DynamicPhysicsData ToDynamicData() => new DynamicPhysicsData
         {
@@ -112,8 +113,8 @@ namespace LittlePhysics
 
     public struct PhysicsVelocityData
     {
-        public float3 LinearVelocity;
-        public float3 AngularVelocity;
+        public float3 Linear;
+        public float3 Angular;
     }
 
     public struct PhysicsSingleton : IComponentData

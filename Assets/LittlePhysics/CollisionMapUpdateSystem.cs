@@ -21,7 +21,6 @@ namespace LittlePhysics
         [NoAlias] public NativeParallelHashMap<uint, Entity> StaticMap;
 
         [NoAlias] public NativeArray<Random> Randoms;
-        [NoAlias] public NativeList<PhysicsBodyData> SelectedBodies;
 
         public void OnCreate(ref SystemState state)
         {
@@ -39,7 +38,6 @@ namespace LittlePhysics
             if (TriggersMap.IsCreated) TriggersMap.Dispose();
             if (StaticMap.IsCreated) StaticMap.Dispose();
             if (Randoms.IsCreated) Randoms.Dispose();
-            if (SelectedBodies.IsCreated) SelectedBodies.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -49,7 +47,7 @@ namespace LittlePhysics
                 var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
                 var spacialMapSingleton = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
                 var randomComponent = SystemAPI.GetSingleton<PhysicsMapRandomComponent>();
-                InitCollections(ref settings.BlobRef.Value, spacialMapSingleton.SpacialMap.GridSize, randomComponent.Seed);
+                InitCollections(ref settings.BlobRef.Value, settings.BlobRef.Value.MaxEntitiesCount, spacialMapSingleton.SpacialMap.GridSize, randomComponent.Seed);
                 return;
             }
 
@@ -69,22 +67,15 @@ namespace LittlePhysics
                 DynamicCollisionMap = DynamicCollisionMap
             }.Schedule(physicsHandle);
 
-            var selectJob = new SelectBodiesJob
-            {
-                BodiesList = physicsSingleton.BodiesList,
-                SelectedBodies = SelectedBodies,
-                MaxEntitiesCount = physicsSettings.BlobRef.Value.LodData.MaxEntityCount
-            }.Schedule(clearJob);
-
             var addDynamicJob = new AddBodiesJob
             {
-                SelectedBodies = SelectedBodies,
+                BodiesList = physicsSingleton.BodiesList,
                 SpatialMap = physicsSingleton.SpacialMap,
                 DynamicCollisionMap = DynamicCollisionMap,
                 Randoms = Randoms,
                 MaxCellsPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntity,
                 MaxEntitiesInCell = physicsSettings.BlobRef.Value.LodData.MaxEntitiesInCell
-            }.Schedule(SelectedBodies, 16, selectJob);
+            }.Schedule(physicsSingleton.BodiesList, 16, clearJob);
 
             state.Dependency = addDynamicJob;
 
@@ -92,7 +83,7 @@ namespace LittlePhysics
             SystemAPI.SetSingleton(physicsSingleton);
         }
 
-        private void InitCollections(ref PhysicsSettingsBlobAsset blob, int3 gridSize, uint seed)
+        private void InitCollections(ref PhysicsSettingsBlobAsset blob, int maxBodiesForRandoms, int3 gridSize, uint seed)
         {
             int totalCells = gridSize.x * gridSize.y * gridSize.z;
 
@@ -111,11 +102,9 @@ namespace LittlePhysics
             StaticMap = new NativeParallelHashMap<uint, Entity>(
                 totalCells, Allocator.Persistent);
 
-            Randoms = new NativeArray<Random>(blob.LodData.MaxEntityCount, Allocator.Persistent);
-            for (int i = 0; i < blob.LodData.MaxEntityCount; i++)
+            Randoms = new NativeArray<Random>(maxBodiesForRandoms, Allocator.Persistent);
+            for (int i = 0; i < maxBodiesForRandoms; i++)
                 Randoms[i] = new Random(seed + (uint)i + 1u);
-
-            SelectedBodies = new NativeList<PhysicsBodyData>(blob.LodData.MaxEntityCount, Allocator.Persistent);
         }
 
         [BurstCompile]
@@ -130,33 +119,10 @@ namespace LittlePhysics
         }
 
         [BurstCompile]
-        private struct SelectBodiesJob : IJob
-        {
-            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
-            public NativeList<PhysicsBodyData> SelectedBodies;
-            public int MaxEntitiesCount;
-
-            public void Execute()
-            {
-                SelectedBodies.Clear();
-                int total = BodiesList.Length;
-                if (total == 0)
-                    return;
-
-                int interval = math.max(1, (total + MaxEntitiesCount - 1) / MaxEntitiesCount);
-                
-                for (int i = 0; i < total; i += interval)
-                {
-                    SelectedBodies.Add(BodiesList[i]);
-                }
-            }
-        }
-
-        [BurstCompile]
         private struct AddBodiesJob : IJobParallelForDefer
         {
             [ReadOnly] public SpacialMap SpatialMap;
-            [ReadOnly] public NativeList<PhysicsBodyData> SelectedBodies;
+            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
 
             [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
             [NativeDisableParallelForRestriction] public NativeArray<Random> Randoms;
@@ -166,9 +132,9 @@ namespace LittlePhysics
 
             public void Execute(int index)
             {
-                var body = SelectedBodies[index];
+                var body = BodiesList[index];
 
-                if (!body.ShouldUpdate)
+                if (!body.ShouldUpdateMap)
                     return;
 
                 switch (body.BodyType)

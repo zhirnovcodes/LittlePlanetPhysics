@@ -1,6 +1,5 @@
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -8,42 +7,59 @@ using Unity.Transforms;
 
 namespace LittlePhysics
 {
-    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     public partial struct ImportPhysicsDataSystem : ISystem
     {
+        [NoAlias] public NativeArray<uint> BodyInLodCount;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSingleton>();
             state.RequireForUpdate<PhysicsSettingsComponent>();
+            state.RequireForUpdate<PhysicsStepComponent>();
+            BodyInLodCount = new NativeArray<uint>(2, Allocator.Persistent);
+        }
+
+        public void OnDestroy(ref SystemState state)
+        {
+            if (BodyInLodCount.IsCreated)
+                BodyInLodCount.Dispose();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
-            var maxEntitiesCount = SystemAPI.GetSingleton<PhysicsSettingsComponent>().BlobRef.Value.MaxEntitiesCount;
+            var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
+            var maxEntitiesCount = settings.BlobRef.Value.MaxEntitiesCount;
+            var lodSettings = settings.BlobRef.Value.LodData;
+            var step = SystemAPI.GetSingleton<PhysicsStepComponent>();
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
+            var lodJob = new ComputePhysicsLodJob
+            {
+                Camera = step.Camera,
+                DistanceRange = lodSettings.DistanceRange
+            }.ScheduleParallel(combinedDep);
 
             var clearJob = new ClearJob
             {
-                BodiesList = singleton.BodiesList
-            }.Schedule(combinedDep);
+                BodiesList = singleton.BodiesList,
+                BodyInLodCount = BodyInLodCount
+            }.Schedule(lodJob);
 
             var importJob = new ImportPhysicsDataJob
             {
                 BodiesList = singleton.BodiesList,
+                BodyInLodCount = BodyInLodCount,
                 MaxEntitiesCount = maxEntitiesCount,
-                ECB = ecb,
+                MaxBodiesPerLod = lodSettings.MaxEntityCount,
                 DeltaTime = SystemAPI.Time.DeltaTime
             }.Schedule(clearJob);
 
-            state.Dependency = JobHandle.CombineDependencies(clearJob, importJob);
+            state.Dependency = importJob;
 
             singleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(singleton);
@@ -54,26 +70,58 @@ namespace LittlePhysics
     public partial struct ClearJob : IJob
     {
         public NativeList<PhysicsBodyData> BodiesList;
+        public NativeArray<uint> BodyInLodCount;
 
         public void Execute()
         {
             BodiesList.Clear();
+            for (int i = 0; i < BodyInLodCount.Length; i++)
+                BodyInLodCount[i] = 0;
+        }
+    }
+
+    [BurstCompile]
+    public partial struct ComputePhysicsLodJob : IJobEntity
+    {
+        public CameraData Camera;
+        public float2 DistanceRange;
+
+        public void Execute(in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
+        {
+            float3 worldPos = transform.Position + body.LocalPosition;
+            float dist = math.distance(Camera.CameraPosition, worldPos);
+            bool inDist = dist >= DistanceRange.x && dist <= DistanceRange.y;
+
+            float4 clip = math.mul(Camera.WorldToClipMatrix, new float4(worldPos, 1f));
+            float invW = math.rcp(clip.w);
+            float3 ndc = clip.xyz * invW;
+            bool inVp = ndc.x >= -1f && ndc.x <= 1f && ndc.y >= -1f && ndc.y <= 1f && ndc.z >= -1f && ndc.z <= 1f;
+
+            tag.LodIndex = (inDist && inVp) ? 1 : 0;
         }
     }
 
     [BurstCompile]
     public partial struct ImportPhysicsDataJob : IJobEntity
     {
-        [NativeDisableContainerSafetyRestriction]
         public NativeList<PhysicsBodyData> BodiesList;
+        public NativeArray<uint> BodyInLodCount;
         public int MaxEntitiesCount;
-        public EntityCommandBuffer ECB;
+        public int MaxBodiesPerLod;
         public float DeltaTime;
 
         public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
             if (BodiesList.Length >= MaxEntitiesCount)
                 return;
+
+            int lod = tag.LodIndex;
+
+            if (BodyInLodCount[lod] >= (uint)MaxBodiesPerLod)
+            {
+                tag.IsEnabled = false;
+                return;
+            }
 
             bool shouldUpdate = false;
 
@@ -104,9 +152,12 @@ namespace LittlePhysics
                     break;
             }
 
-            var bodyData = body.ToBodyData(entity, transform, shouldUpdate);
+            tag.IsEnabled = true;
+            BodyInLodCount[lod]++;
+            int index = BodiesList.Length;
+            var bodyData = body.ToBodyData(entity, transform, tag.LodIndex, shouldUpdate);
 
-            tag.Index = BodiesList.Length;
+            tag.Index = index;
             BodiesList.Add(bodyData);
         }
     }

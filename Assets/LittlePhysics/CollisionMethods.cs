@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Mathematics;
 
 namespace LittlePhysics
@@ -21,6 +22,7 @@ namespace LittlePhysics
         public float Scale; // diameter (radius * 2)
     }
 
+    [BurstCompile]
     public static class CollisionMethods
     {
         private const float CollisionEpsilon = 0.001f;

@@ -25,6 +25,8 @@ namespace LittlePhysics
         public bool WasUpdated;
         public float TimeElapsed;
         public int Index;
+        public int LodIndex;
+        public bool IsEnabled;
     }
 
     public struct PhysicsBodyComponent : IComponentData
@@ -39,7 +41,7 @@ namespace LittlePhysics
         public float Friction;
         public float Hardness;
 
-        public PhysicsBodyData ToBodyData(Entity entity, LocalTransform transform, bool shouldUpdate = true) => new PhysicsBodyData
+        public PhysicsBodyData ToBodyData(Entity entity, LocalTransform transform, int lodIndex, bool shouldUpdateMap = true) => new PhysicsBodyData
         {
             Main = entity,
             BodyType = BodyType,
@@ -49,10 +51,11 @@ namespace LittlePhysics
             Scale = transform.Scale * Scale,
             Up = math.rotate(transform.Rotation, math.up()),
             Mass = Mass,
+            LodIndex = lodIndex,
             Bounciness = Bounciness,
             Friction = Friction,
             Hardness = Hardness,
-            ShouldUpdate = shouldUpdate
+            ShouldUpdateMap = shouldUpdateMap,
         };
     }
 }

@@ -64,7 +64,7 @@ namespace LittlePhysics
             var pairsCheckJob = new PairsCheckJob
             {
                 DynamicCollisionMap = mapSystem.DynamicCollisionMap,
-                SelectedBodies = mapSystem.SelectedBodies,
+                BodiesList = physicsSingleton.BodiesList,
                 PairMap = Pairs,
                 CollisionsMap = CollisionsNew,
                 MaxCollisions = physicsSettings.BlobRef.Value.GetSumEntitiesXCollisions(),
@@ -108,7 +108,7 @@ namespace LittlePhysics
         private struct PairsCheckJob : IJobParallelFor
         {
             [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
-            [ReadOnly] public NativeList<PhysicsBodyData> SelectedBodies;
+            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
 
             [NativeDisableContainerSafetyRestriction] public CollisionPairHashMap PairMap;
             [NativeDisableContainerSafetyRestriction] public CollisionPairHashMap CollisionsMap;
@@ -140,8 +140,8 @@ namespace LittlePhysics
 
             private unsafe void CheckCollision(uint bodyIndexA, uint bodyIndexB)
             {
-                var bodyA = SelectedBodies[(int)bodyIndexA];
-                var bodyB = SelectedBodies[(int)bodyIndexB];
+                var bodyA = BodiesList[(int)bodyIndexA];
+                var bodyB = BodiesList[(int)bodyIndexB];
 
                 if (CollisionsMap.CanAdd((uint)bodyIndexA) == false)
                 {

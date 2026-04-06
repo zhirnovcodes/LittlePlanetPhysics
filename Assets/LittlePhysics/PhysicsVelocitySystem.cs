@@ -18,10 +18,9 @@ namespace LittlePhysics
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            return;
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
-
-            return;
             state.Dependency = new ApplyVelocitiesJob
             {
                 BodiesEntities = singleton.BodiesEntities,
@@ -57,8 +56,8 @@ namespace LittlePhysics
                     if (!VelocityLookup.TryGetComponent(entity, out var velocity))
                         continue;
 
-                    body.Position += velocity.LinearVelocity * DeltaTime;
-                    body.RotationOffset += velocity.AngularVelocity * DeltaTime;
+                    body.Position += velocity.Linear * DeltaTime;
+                    body.RotationOffset += velocity.Angular * DeltaTime;
                     Bodies[entity] = body;
                 }
             }

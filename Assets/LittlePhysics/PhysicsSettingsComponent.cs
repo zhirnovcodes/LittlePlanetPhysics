@@ -1,10 +1,13 @@
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace LittlePhysics
 {
     [System.Serializable]
     public struct LodPhysicsData
     {
+        public float2 DistanceRange;
+        public int4 MaxBodyCountPerLod;
         public int MaxEntityCount;
         public int MaxEntitiesInCell;
 

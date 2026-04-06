@@ -1,7 +1,9 @@
+using Unity.Burst;
 using Unity.Mathematics;
 
 namespace LittlePhysics
 {
+    [BurstCompile]
     public static class CollisionForces
     {
         /// <summary>
@@ -175,8 +177,8 @@ namespace LittlePhysics
             float3 radiusI = GetRadiusVector(body1, contactPoint);
             float3 radiusJ = GetRadiusVector(body2, contactPoint);
 
-            float3 velAtContactI = vel1.LinearVelocity + math.cross(vel1.AngularVelocity, radiusI);
-            float3 velAtContactJ = vel2.LinearVelocity + math.cross(vel2.AngularVelocity, radiusJ);
+            float3 velAtContactI = vel1.Linear + math.cross(vel1.Angular, radiusI);
+            float3 velAtContactJ = vel2.Linear + math.cross(vel2.Angular, radiusJ);
             float relVelAlongNormal = math.dot(velAtContactJ - velAtContactI, normal);
 
             if (relVelAlongNormal >= 0f)
@@ -216,7 +218,7 @@ namespace LittlePhysics
             dynImpulse = float3.zero;
             staticImpulse = float3.zero;
 
-            float relVelAlongNormal = math.dot(-dynVel.LinearVelocity, normal);
+            float relVelAlongNormal = math.dot(-dynVel.Linear, normal);
 
             if (relVelAlongNormal >= 0f)
                 return;

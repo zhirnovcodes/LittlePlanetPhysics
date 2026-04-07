@@ -25,10 +25,14 @@ namespace LittlePhysics
                 return;
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
+            var velocityLookup = SystemAPI.GetComponentLookup<PhysicsVelocityComponent>(false);
+            velocityLookup.Update(ref state);
 
             state.Dependency = new ExportPhysicsDataJob
             {
                 BodiesList = singleton.BodiesList,
+                PhysicsVelocities = singleton.PhysicsVelocities,
+                VelocityLookup = velocityLookup,
             }.Schedule(combinedDep);
 
             singleton.PhysicsJobHandle = state.Dependency;
@@ -39,8 +43,10 @@ namespace LittlePhysics
         private partial struct ExportPhysicsDataJob : IJobEntity
         {
             [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
+            [ReadOnly] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+            public ComponentLookup<PhysicsVelocityComponent> VelocityLookup;
 
-            public void Execute(ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateComponent tag)
+            public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
             {
                 if (body.BodyType == BodyType.Dynamic == false)
                     return;
@@ -54,6 +60,14 @@ namespace LittlePhysics
                 var bodyData = BodiesList[tag.Index];
                 transform.Position = bodyData.Position - body.LocalPosition;
                 transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(bodyData.RotationOffset));
+
+                if (!VelocityLookup.TryGetComponent(entity, out var velComp))
+                    return;
+
+                var pv = PhysicsVelocities[tag.Index];
+                velComp.Linear = pv.Linear;
+                velComp.Angular = pv.Angular;
+                VelocityLookup[entity] = velComp;
             }
         }
     }

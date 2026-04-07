@@ -14,12 +14,27 @@ namespace LittlePhysics
         public uint Body1;
         public uint Body2;
         public float3 ContactPoint;
+        public float3 Impulse1;
+        public float3 Impulse2;
+        public float3 PushOutForce1;
+        public float3 PushOutForce2;
 
-        public CollisionData(uint body1, uint body2, float3 contactPoint)
+        public CollisionData(
+            uint body1,
+            uint body2,
+            float3 contactPoint,
+            float3 impulse1,
+            float3 impulse2,
+            float3 pushOutForce1,
+            float3 pushOutForce2)
         {
             Body1 = body1;
             Body2 = body2;
             ContactPoint = contactPoint;
+            Impulse1 = impulse1;
+            Impulse2 = impulse2;
+            PushOutForce1 = pushOutForce1;
+            PushOutForce2 = pushOutForce2;
         }
 
         public bool Equals(CollisionData other)
@@ -34,10 +49,8 @@ namespace LittlePhysics
     [UpdateAfter(typeof(CollisionMapUpdateSystem))]
     public partial struct CollisionDetectionSystem : ISystem
     {
-        [NoAlias] public NativeParallelMultiHashMap<Entity, CollisionItem> Collisions;
-
         [NoAlias] public LittleHashMap<uint> Pairs;
-        [NoAlias] public LittleHashMap<CollisionData> CollisionsNew;
+        [NoAlias] public LittleHashMap<CollisionData> Collisions;
 
         public void OnCreate(ref SystemState state)
         {
@@ -48,7 +61,6 @@ namespace LittlePhysics
         public void OnDestroy(ref SystemState state)
         {
             if (Collisions.IsCreated) Collisions.Dispose();
-            if (CollisionsNew.IsCreated) CollisionsNew.Dispose();
             if (Pairs.IsCreated) Pairs.Dispose();
         }
 
@@ -66,13 +78,15 @@ namespace LittlePhysics
             var physicsSingleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             if (!physicsSingleton.CollisionMap.DynamicCollisionMap.IsCreated)
                 return;
+            if (!physicsSingleton.PhysicsVelocities.IsCreated)
+                return;
             var spacialMapSettings = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
 
             var physicsHandle = JobHandle.CombineDependencies(state.Dependency, physicsSingleton.PhysicsJobHandle);
 
             var clearJob = new ClearJob
             {
-                CollisionsMap = CollisionsNew,
+                CollisionsMap = Collisions,
                 PairMap = Pairs,
             }.Schedule(physicsHandle);
 
@@ -85,7 +99,8 @@ namespace LittlePhysics
                 TriggersCollisionMap = physicsSingleton.CollisionMap.TriggersCollisionMap,
                 BodiesList = physicsSingleton.BodiesList,
                 PairMap = Pairs,
-                CollisionsMap = CollisionsNew,
+                CollisionsMap = Collisions,
+                PhysicsVelocities = physicsSingleton.PhysicsVelocities,
             }.Schedule(totalCells, 16, clearJob);
 
             state.Dependency = pairsCheckJob;
@@ -95,15 +110,12 @@ namespace LittlePhysics
 
         private void InitCollections(ref PhysicsSettingsBlobAsset blob)
         {
-            Collisions = new NativeParallelMultiHashMap<Entity, CollisionItem>(
-                blob.GetSumEntitiesXCollisions(), Allocator.Persistent);
-
             Pairs = new LittleHashMap<uint>(
                 blob.LodData.MaxEntityCount,
                 blob.LodData.MaxPairPerEntity,
                 Allocator.Persistent);
 
-            CollisionsNew = new LittleHashMap<CollisionData>(
+            Collisions = new LittleHashMap<CollisionData>(
                 blob.LodData.MaxEntityCount,
                 blob.LodData.MaxCollisionsPerEntity,
                 Allocator.Persistent);
@@ -132,6 +144,7 @@ namespace LittlePhysics
 
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<uint> PairMap;
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
+            [ReadOnly] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
 
             public unsafe void Execute(int cellIndex)
             {
@@ -217,7 +230,20 @@ namespace LittlePhysics
                     return;
                 }
 
-                var collision = new CollisionData(bodyIndexA, bodyIndexB, contactPoint);
+                var vel1 = PhysicsVelocities[(int)bodyIndexA];
+                var vel2 = PhysicsVelocities[(int)bodyIndexB];
+
+                CollisionForces.GetCollisionImpulses(
+                    bodyA, bodyB, vel1, vel2, contactPoint,
+                    out float3 impulse1, out float3 impulse2);
+
+                CollisionForces.GetPushOutForce(
+                    bodyA, bodyB, contactPoint,
+                    out float3 pushForce1, out float3 pushForce2);
+
+                var collision = new CollisionData(
+                    bodyIndexA, bodyIndexB, contactPoint,
+                    impulse1, impulse2, pushForce1, pushForce2);
 
                 CollisionsMap.TryAdd((uint)bodyIndexA, collision);
 

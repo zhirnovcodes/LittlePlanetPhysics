@@ -72,10 +72,9 @@ namespace LittlePhysics
                 if (body.ValueRO.BodyType != config.BodyToDebug)
                     continue;
 
-                if (!collisions.TryGetFirstValue(entity, out var item, out var it))
-                    continue;
-
-                do
+                var iterator = collisions.GetIterator();
+                /*
+                while (collisions.Traverse(ref iterator, out (BodiesPair, ))) ;
                 {
                     if (spawnedEntities.Length >= MaxDebugObjects)
                         break;
@@ -84,8 +83,8 @@ namespace LittlePhysics
                     var transform = LocalTransform.FromPosition(item.ContactPoint);
                     state.EntityManager.SetComponentData(spawned, transform);
                     spawnedEntities.Add(spawned);
-                }
-                while (collisions.TryGetNextValue(out item, ref it));
+                }*/
+                
             }
         }
     }

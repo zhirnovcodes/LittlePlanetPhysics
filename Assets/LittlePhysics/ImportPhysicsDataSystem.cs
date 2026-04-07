@@ -47,8 +47,10 @@ namespace LittlePhysics
             var clearJob = new ClearJob
             {
                 BodiesList = singleton.BodiesList,
-                BodyInLodCount = BodyInLodCount
+                BodyInLodCount = BodyInLodCount,
             }.Schedule(lodJob);
+
+            var velocityLookup = SystemAPI.GetComponentLookup<PhysicsVelocityComponent>(true);
 
             var importJob = new ImportPhysicsDataJob
             {
@@ -56,7 +58,9 @@ namespace LittlePhysics
                 BodyInLodCount = BodyInLodCount,
                 MaxEntitiesCount = maxEntitiesCount,
                 MaxBodiesPerLod = lodSettings.MaxEntityCount,
-                DeltaTime = SystemAPI.Time.DeltaTime
+                DeltaTime = SystemAPI.Time.DeltaTime,
+                PhysicsVelocities = singleton.PhysicsVelocities,
+                VelocityLookup = velocityLookup,
             }.Schedule(clearJob);
 
             state.Dependency = importJob;
@@ -109,6 +113,8 @@ namespace LittlePhysics
         public int MaxEntitiesCount;
         public int MaxBodiesPerLod;
         public float DeltaTime;
+        public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+        [ReadOnly] public ComponentLookup<PhysicsVelocityComponent> VelocityLookup;
 
         public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
@@ -159,6 +165,14 @@ namespace LittlePhysics
 
             tag.Index = index;
             BodiesList.Add(bodyData);
+
+            PhysicsVelocityData v = default;
+            if (VelocityLookup.TryGetComponent(entity, out var velComp))
+            {
+                v = velComp.ToVelocityData();
+            }
+            
+            PhysicsVelocities[index] = v;
         }
     }
 }

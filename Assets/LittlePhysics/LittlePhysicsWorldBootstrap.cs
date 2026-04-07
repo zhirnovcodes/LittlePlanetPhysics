@@ -12,7 +12,13 @@ namespace LittlePhysics
             state.RequireForUpdate<SpacialMapSettingsComponent>();
         }
 
-        public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state)
+        {
+            if (!SystemAPI.TryGetSingleton<PhysicsSingleton>(out var singleton))
+                return;
+            if (singleton.PhysicsVelocities.IsCreated)
+                singleton.PhysicsVelocities.Dispose();
+        }
 
         public void OnUpdate(ref SystemState state)
         {
@@ -44,6 +50,9 @@ namespace LittlePhysics
                 return;
 
             var spacialMap = SystemAPI.GetSingleton<SpacialMapSettingsComponent>().SpacialMap;
+            var physicsSettings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
+            int velocityCapacity = physicsSettings.BlobRef.Value.LodData.MaxEntityCount;
+            var physicsVelocities = new NativeArray<PhysicsVelocityData>(velocityCapacity, Allocator.Persistent);
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var singletonEntity = ecb.CreateEntity();
@@ -52,6 +61,7 @@ namespace LittlePhysics
                 BodiesEntities = littleSystem.BodiesEntities,
                 Bodies = littleSystem.Bodies,
                 BodiesList = littleSystem.BodiesList,
+                PhysicsVelocities = physicsVelocities,
                 CollisionMap = new CollisionMapSingleton
                 {
                     DynamicCollisionMap = collisionsSystem.DynamicCollisionMap,

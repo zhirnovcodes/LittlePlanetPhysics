@@ -36,7 +36,7 @@ namespace LittlePhysics
 
     public struct CollisionsSingleton
     {
-        [NoAlias] public NativeParallelMultiHashMap<Entity, CollisionItem> Collisions;
+        [NoAlias] public LittleHashMap<CollisionData> Collisions;
     }
 
     public enum ColliderType
@@ -115,6 +115,15 @@ namespace LittlePhysics
     {
         public float3 Linear;
         public float3 Angular;
+
+        public static PhysicsVelocityData operator +(PhysicsVelocityData a, PhysicsVelocityData b)
+        {
+            return new PhysicsVelocityData
+            {
+                Linear = a.Linear + b.Linear,
+                Angular = a.Angular + b.Angular
+            };
+        }
     }
 
     public struct PhysicsSingleton : IComponentData
@@ -122,6 +131,7 @@ namespace LittlePhysics
         [NoAlias] public NativeList<Entity> BodiesEntities;
         [NoAlias] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
         [NoAlias] public NativeList<PhysicsBodyData> BodiesList;
+        [NoAlias] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
         public CollisionMapSingleton CollisionMap;
         public CollisionsSingleton Collisions;
         public SpacialMap SpacialMap;

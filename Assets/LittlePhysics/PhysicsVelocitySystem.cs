@@ -12,9 +12,20 @@ namespace LittlePhysics
     [UpdateAfter(typeof(CollisionDetectionSystem))]
     public partial struct PhysicsVelocitySystem : ISystem
     {
+        private NativeReference<uint> BodiesCount;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSingleton>();
+            BodiesCount = new NativeReference<uint>(Allocator.Persistent);
+        }
+
+        public void OnDisable(ref SystemState state)
+        {
+            if (BodiesCount.IsCreated)
+            { 
+                BodiesCount.Dispose();
+            }
         }
 
         [BurstCompile]
@@ -27,23 +38,25 @@ namespace LittlePhysics
                 return;
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
+            var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
 
-            int bodyCount = singleton.PhysicsVelocities.Length;
+            int bodyCount = settings.BlobRef.Value.LodData.MaxEntityCount;
 
             var collisionDep = new ApplyCollisionVelocitiesJob
             {
                 CollisionsMap = singleton.Collisions.Collisions,
                 BodiesList = singleton.BodiesList,
                 PhysicsVelocities = singleton.PhysicsVelocities,
+                BodiesCount = BodiesCount
             }.Schedule(bodyCount, 32, combinedDep);
 
             state.Dependency = new ApplyVelocitiesJob
             {
-                Bodies = singleton.Bodies,
                 BodiesList = singleton.BodiesList,
                 PhysicsVelocities = singleton.PhysicsVelocities,
-                DeltaTime = SystemAPI.Time.DeltaTime
-            }.Schedule(collisionDep);
+                DeltaTime = SystemAPI.Time.DeltaTime,
+                BodiesCount = BodiesCount
+            }.Schedule(bodyCount, 32, collisionDep);
 
             singleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(singleton);
@@ -55,9 +68,15 @@ namespace LittlePhysics
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
             [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+            [NativeDisableContainerSafetyRestriction] public NativeReference<uint> BodiesCount;
 
             public void Execute(int index)
             {
+                if (index == 0)
+                {
+                    BodiesCount.Value = (uint)BodiesList.Length;
+                }
+
                 uint row = (uint)index;
 
                 if (index >= BodiesList.Length)
@@ -105,29 +124,30 @@ namespace LittlePhysics
         }
 
         [BurstCompile]
-        private struct ApplyVelocitiesJob : IJob
+        private struct ApplyVelocitiesJob : IJobParallelFor
         {
-            public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
-            public NativeList<PhysicsBodyData> BodiesList;
+            [NativeDisableContainerSafetyRestriction] public NativeList<PhysicsBodyData> BodiesList;
             [ReadOnly] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             public float DeltaTime;
+            [ReadOnly] public NativeReference<uint> BodiesCount;
 
-            public void Execute()
+            public void Execute(int index)
             {
-                for (int i = 0; i < BodiesList.Length; i++)
+                if (index >= BodiesCount.Value)
                 {
-                    var body = BodiesList[i];
-                    if (body.BodyType != BodyType.Dynamic)
-                        continue;
-
-                    var velocity = PhysicsVelocities[i];
-                    body.Position += velocity.Linear * DeltaTime;
-                    body.RotationOffset += velocity.Angular * DeltaTime;
-
-                    BodiesList[i] = body;
-                    if (Bodies.ContainsKey(body.Main))
-                        Bodies[body.Main] = body;
+                    return;
                 }
+
+                var body = BodiesList[index];
+
+                if (body.BodyType != BodyType.Dynamic)
+                    return;
+
+                var velocity = PhysicsVelocities[index];
+                body.Position += velocity.Linear * DeltaTime;
+                body.RotationOffset += velocity.Angular * DeltaTime;
+
+                BodiesList[index] = body;
             }
         }
     }

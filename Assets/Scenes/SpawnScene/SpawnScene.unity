@@ -150,8 +150,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71246454091084843843a64c3bd2582b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpacialMapSettingsAuthoring
-  Position: {x: -64, y: -64, z: -64}
-  CellWidth: 8
+  Position: {x: -29.501623, y: -25.438694, z: -28.59952}
+  CellWidth: 4
   CellsWidth: 16
   RandomSeed: 12345
   ShouldDrawCells: 0
@@ -172,9 +172,9 @@ MonoBehaviour:
     DistanceRange:
       x: 0
       y: 100
-    MaxEntityCount: 100000
-    MaxDynamicsInCells: 1
-    MaxTriggersInCells: 1
+    MaxEntityCount: 10000
+    MaxDynamicsInCells: 2
+    MaxTriggersInCells: 2
     MaxStaticInCells: 1
     MaxCollisionsPerEntity: 2
     MaxCollisionsPerEntityX2: 8
@@ -243,11 +243,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpawnAuthoring
   Prefab: {fileID: 7085168711787417659, guid: 6a1a7efaf7eb86340b7d33b82eca4737, type: 3}
   MaxCount: 100000
-  SingleSpawnCount: {x: 8000, y: 10000}
+  SingleSpawnCount: {x: 200, y: 500}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
   CenterPosition: {x: 0, y: 0, z: 0}
-  Scale: {x: 128, y: 128, z: 128}
+  Scale: {x: 30, y: 30, z: 30}
   RandomSeed: 100
 --- !u!4 &1087947027
 Transform:

@@ -8,12 +8,14 @@ using Unity.Transforms;
 
 namespace LittlePhysics
 {
+    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     public partial struct ImportPhysicsDataSystem : ISystem
     {
         [NoAlias] public NativeArray<uint> BodyInLodCount;
 
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSingleton>();
@@ -22,6 +24,7 @@ namespace LittlePhysics
             BodyInLodCount = new NativeArray<uint>(2, Allocator.Persistent);
         }
 
+        [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
             if (BodyInLodCount.IsCreated)
@@ -112,6 +115,7 @@ namespace LittlePhysics
         }
     }
 
+    [BurstCompile]
     public partial struct ImportPhysicsDataJob : IJobEntity
     {
         public NativeList<PhysicsBodyData> BodiesList;

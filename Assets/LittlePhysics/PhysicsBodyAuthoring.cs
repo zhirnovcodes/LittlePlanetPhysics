@@ -44,8 +44,7 @@ namespace LittlePhysics
                     },
                     Interval = authoring.TriggerUpdateInterval,
                     Index = -1,
-                    LodIndex = 0,
-                    IsEnabled = true
+                    LodIndex = 0
                 });
 
                 if (authoring.BodyType == BodyType.Dynamic)

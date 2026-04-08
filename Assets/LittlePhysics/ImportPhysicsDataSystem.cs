@@ -1,3 +1,4 @@
+using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -31,9 +32,15 @@ namespace LittlePhysics
         public void OnUpdate(ref SystemState state)
         {
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
+
+            if (!singleton.BodiesList.IsCreated)
+                return;
+
             var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
-            var maxEntitiesCount = settings.BlobRef.Value.MaxEntitiesCount;
             var lodSettings = settings.BlobRef.Value.LodData;
+            var lodMax = lodSettings.MaxEntityCount;
+            var rootMax = settings.BlobRef.Value.MaxEntitiesCount;
+            var maxEntitiesCount = lodMax > 0 ? lodMax : rootMax;
             var step = SystemAPI.GetSingleton<PhysicsStepComponent>();
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
@@ -57,7 +64,7 @@ namespace LittlePhysics
                 BodiesList = singleton.BodiesList,
                 BodyInLodCount = BodyInLodCount,
                 MaxEntitiesCount = maxEntitiesCount,
-                MaxBodiesPerLod = lodSettings.MaxEntityCount,
+                MaxBodiesPerLod = maxEntitiesCount,
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 PhysicsVelocities = singleton.PhysicsVelocities,
                 VelocityLookup = velocityLookup,
@@ -105,7 +112,6 @@ namespace LittlePhysics
         }
     }
 
-    [BurstCompile]
     public partial struct ImportPhysicsDataJob : IJobEntity
     {
         public NativeList<PhysicsBodyData> BodiesList;
@@ -118,8 +124,11 @@ namespace LittlePhysics
 
         public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
+
             if (BodiesList.Length >= MaxEntitiesCount)
+            {
                 return;
+            }
 
             int lod = tag.LodIndex;
 
@@ -129,29 +138,29 @@ namespace LittlePhysics
                 return;
             }
 
-            bool shouldUpdate = false;
+            bool shouldUpdateMap = false;
 
             switch (tag.Type)
             {
                 case UpdateType.EveryFrame:
-                    shouldUpdate = true;
+                    shouldUpdateMap = true;
                     break;
                 case UpdateType.Once:
                     if (tag.WasUpdated == false)
                     {
                         tag.WasUpdated = true;
-                        shouldUpdate = true;
+                        shouldUpdateMap = true;
                     }
                     break;
                 case UpdateType.WithInterval:
                     if (tag.WasUpdated)
                     {
-                        shouldUpdate = (int)math.floor(tag.TimeElapsed / tag.Interval) != (int)math.floor((tag.TimeElapsed - DeltaTime) / tag.Interval);
+                        shouldUpdateMap = (int)math.floor(tag.TimeElapsed / tag.Interval) != (int)math.floor((tag.TimeElapsed - DeltaTime) / tag.Interval);
                     }
                     else
                     {
                         tag.WasUpdated = true;
-                        shouldUpdate = true;
+                        shouldUpdateMap = true;
                     }
 
                     tag.TimeElapsed += DeltaTime;
@@ -161,18 +170,19 @@ namespace LittlePhysics
             tag.IsEnabled = true;
             BodyInLodCount[lod]++;
             int index = BodiesList.Length;
-            var bodyData = body.ToBodyData(entity, transform, tag.LodIndex, shouldUpdate);
+            var bodyData = body.ToBodyData(entity, transform, tag.LodIndex, shouldUpdateMap);
 
             tag.Index = index;
             BodiesList.Add(bodyData);
 
-            PhysicsVelocityData v = default;
+            PhysicsVelocityData velocityData = default;
+
             if (VelocityLookup.TryGetComponent(entity, out var velComp))
             {
-                v = velComp.ToVelocityData();
+                velocityData = velComp.ToVelocityData();
             }
             
-            PhysicsVelocities[index] = v;
+            PhysicsVelocities[index] = velocityData;
         }
     }
 }

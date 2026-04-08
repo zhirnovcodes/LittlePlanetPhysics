@@ -32,7 +32,10 @@ namespace LittlePhysics
                 ref var spawn = ref spawner.ValueRW;
 
                 if (spawn.CurrentCount >= spawn.MaxCount)
-                    continue;
+                {
+                    state.Enabled = false;
+                    continue; 
+                }
 
                 spawn.TimeUntilNextSpawn -= deltaTime;
 

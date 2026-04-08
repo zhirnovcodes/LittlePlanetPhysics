@@ -39,7 +39,7 @@ namespace LittlePhysics
                 var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
                 var spacialMapSingleton = SystemAPI.GetSingleton<SpacialMapSettingsComponent>();
                 var randomComponent = SystemAPI.GetSingleton<PhysicsMapRandomComponent>();
-                InitCollections(ref settings.BlobRef.Value, settings.BlobRef.Value.MaxEntitiesCount, spacialMapSingleton.SpacialMap.GridSize, randomComponent.Seed);
+                InitCollections(ref settings.BlobRef.Value, settings.BlobRef.Value.LodData.MaxEntityCount, spacialMapSingleton.SpacialMap.GridSize, randomComponent.Seed);
                 return;
             }
 

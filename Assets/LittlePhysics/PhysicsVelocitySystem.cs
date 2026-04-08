@@ -91,8 +91,13 @@ namespace LittlePhysics
                         body, impulse, collision.ContactPoint,
                         out float3 linearFromImpulse, out float3 angularFromImpulse);
 
-                    sumVelocity.Linear += linearFromImpulse + pushForce;
-                    sumVelocity.Angular += angularFromImpulse;
+                    var additionVelocity = new PhysicsVelocityData
+                    {
+                        Linear = linearFromImpulse + pushForce,
+                        Angular = angularFromImpulse
+                    };
+
+                    sumVelocity += additionVelocity;
                 }
 
                 PhysicsVelocities[index] = sumVelocity;

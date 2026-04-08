@@ -26,7 +26,6 @@ namespace LittlePhysics
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
             var velocityLookup = SystemAPI.GetComponentLookup<PhysicsVelocityComponent>(false);
-            velocityLookup.Update(ref state);
 
             state.Dependency = new ExportPhysicsDataJob
             {
@@ -46,15 +45,12 @@ namespace LittlePhysics
             [ReadOnly] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             public ComponentLookup<PhysicsVelocityComponent> VelocityLookup;
 
-            public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
+            public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateComponent tag)
             {
                 if (body.BodyType == BodyType.Dynamic == false)
                     return;
 
                 if (!tag.IsEnabled)
-                    return;
-
-                if (tag.Index < 0 || tag.Index >= BodiesList.Length)
                     return;
 
                 var bodyData = BodiesList[tag.Index];
@@ -64,9 +60,9 @@ namespace LittlePhysics
                 if (!VelocityLookup.TryGetComponent(entity, out var velComp))
                     return;
 
-                var pv = PhysicsVelocities[tag.Index];
-                velComp.Linear = pv.Linear;
-                velComp.Angular = pv.Angular;
+                var velocityData = PhysicsVelocities[tag.Index];
+                velComp.Linear = velocityData.Linear;
+                velComp.Angular = velocityData.Angular;
                 VelocityLookup[entity] = velComp;
             }
         }

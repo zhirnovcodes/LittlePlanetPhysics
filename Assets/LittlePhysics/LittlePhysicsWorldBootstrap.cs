@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 
 namespace LittlePhysics
 {
@@ -22,32 +23,95 @@ namespace LittlePhysics
 
         public void OnUpdate(ref SystemState state)
         {
-            var systemHandle = state.World.GetExistingSystem<LittlePhysicsUpdateSystem>();
-            if (systemHandle == SystemHandle.Null)
+            if (!WaitForUpdateSystem(ref state))
                 return;
 
-            ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<LittlePhysicsUpdateSystem>(systemHandle);
+            if (!WaitForCollisionMapSystem(ref state))
+                return;
+
+            if (!WaitForCollisionSystem(ref state))
+                return;
+
+            CreateSingleton(ref state);
+
+            state.Enabled = false;
+        }
+
+        private static bool WaitForUpdateSystem(ref SystemState state)
+        {
+            var handle = state.World.GetExistingSystem<LittlePhysicsUpdateSystem>();
+            if (handle == SystemHandle.Null)
+            {
+                Debug.Log("[LittlePhysicsBootstrap] WaitForUpdateSystem: LittlePhysicsUpdateSystem not registered yet; deferring.");
+                return false;
+            }
+
+            ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<LittlePhysicsUpdateSystem>(handle);
 
             if (!littleSystem.Bodies.IsCreated || !littleSystem.BodiesEntities.IsCreated || !littleSystem.BodiesList.IsCreated)
-                return;
+            {
+                Debug.Log("[LittlePhysicsBootstrap] WaitForUpdateSystem: Body buffers not ready (Bodies / BodiesEntities / BodiesList); deferring.");
+                return false;
+            }
 
-            var collisionsHandle = state.World.GetExistingSystem<CollisionMapUpdateSystem>();
-            if (collisionsHandle == SystemHandle.Null)
-                return;
+            Debug.Log("[LittlePhysicsBootstrap] WaitForUpdateSystem: LittlePhysicsUpdateSystem and body buffers ready.");
+            return true;
+        }
 
-            ref var collisionsSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionMapUpdateSystem>(collisionsHandle);
+        private static bool WaitForCollisionMapSystem(ref SystemState state)
+        {
+            var handle = state.World.GetExistingSystem<CollisionMapUpdateSystem>();
+            if (handle == SystemHandle.Null)
+            {
+                Debug.Log("[LittlePhysicsBootstrap] WaitForCollisionMapSystem: CollisionMapUpdateSystem not registered yet; deferring.");
+                return false;
+            }
 
-            if (!collisionsSystem.DynamicCollisionMap.IsCreated)
-                return;
+            ref var mapSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionMapUpdateSystem>(handle);
+
+            if (!mapSystem.DynamicCollisionMap.IsCreated)
+            {
+                Debug.Log("[LittlePhysicsBootstrap] WaitForCollisionMapSystem: DynamicCollisionMap not created yet; deferring.");
+                return false;
+            }
+
+            Debug.Log("[LittlePhysicsBootstrap] WaitForCollisionMapSystem: Collision map buffers ready.");
+            return true;
+        }
+
+        private static bool WaitForCollisionSystem(ref SystemState state)
+        {
+            var handle = state.World.GetExistingSystem<CollisionDetectionSystem>();
+            if (handle == SystemHandle.Null)
+            {
+                Debug.Log("[LittlePhysicsBootstrap] WaitForCollisionSystem: CollisionDetectionSystem not registered yet; deferring.");
+                return false;
+            }
+
+            ref var detectionSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionDetectionSystem>(handle);
+            if (!detectionSystem.Collisions.IsCreated)
+            {
+                Debug.Log("[LittlePhysicsBootstrap] WaitForCollisionSystem: Collisions buffer not created yet; deferring.");
+                return false;
+            }
+
+            Debug.Log("[LittlePhysicsBootstrap] WaitForCollisionSystem: Collision detection buffers ready.");
+            return true;
+        }
+
+        private void CreateSingleton(
+            ref SystemState state)
+        {
+            Debug.Log("[LittlePhysicsBootstrap] CreateSingleton: Building PhysicsSingleton and playing back ECB.");
+
+            var littleSystemHandle = state.World.GetExistingSystem<LittlePhysicsUpdateSystem>();
+            ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef< LittlePhysicsUpdateSystem>(littleSystemHandle);
+
+            var collisionMapHandle = state.World.GetExistingSystem<CollisionMapUpdateSystem>();
+            ref var collisionMapSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionMapUpdateSystem>(collisionMapHandle);
 
             var detectionHandle = state.World.GetExistingSystem<CollisionDetectionSystem>();
-            if (detectionHandle == SystemHandle.Null)
-                return;
-
             ref var detectionSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionDetectionSystem>(detectionHandle);
-
-            if (!detectionSystem.Collisions.IsCreated)
-                return;
 
             var spacialMap = SystemAPI.GetSingleton<SpacialMapSettingsComponent>().SpacialMap;
             var physicsSettings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
@@ -64,9 +128,9 @@ namespace LittlePhysics
                 PhysicsVelocities = physicsVelocities,
                 CollisionMap = new CollisionMapSingleton
                 {
-                    DynamicCollisionMap = collisionsSystem.DynamicCollisionMap,
-                    TriggersCollisionMap = collisionsSystem.TriggersCollisionMap,
-                    StaticCollisionMap = collisionsSystem.StaticCollisionMap
+                    DynamicCollisionMap = collisionMapSystem.DynamicCollisionMap,
+                    TriggersCollisionMap = collisionMapSystem.TriggersCollisionMap,
+                    StaticCollisionMap = collisionMapSystem.StaticCollisionMap
                 },
                 Collisions = new CollisionsSingleton
                 {
@@ -77,7 +141,7 @@ namespace LittlePhysics
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
 
-            state.Enabled = false;
+            Debug.Log("[LittlePhysicsBootstrap] CreateSingleton: PhysicsSingleton created; bootstrap system will disable.");
         }
     }
 }

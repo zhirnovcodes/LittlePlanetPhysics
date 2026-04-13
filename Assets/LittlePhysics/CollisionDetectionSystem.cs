@@ -140,7 +140,7 @@ namespace LittlePhysics
             [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
             [NativeDisableParallelForRestriction] public NativeCollisionMap StaticCollisionMap;
             [NativeDisableParallelForRestriction] public NativeCollisionMap TriggersCollisionMap;
-            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
+            [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
 
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<uint> PairMap;
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;

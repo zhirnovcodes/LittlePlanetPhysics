@@ -40,7 +40,7 @@ namespace LittlePhysics
         [BurstCompile]
         private partial struct ExportPhysicsDataJob : IJobEntity
         {
-            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
+            [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
             [ReadOnly] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
 
             public void Execute(Entity entity, ref LocalTransform transform, in PhysicsBodyComponent body, in PhysicsBodyUpdateComponent tag, ref PhysicsVelocityComponent velocity)

@@ -12,20 +12,9 @@ namespace LittlePhysics
     [UpdateAfter(typeof(CollisionDetectionSystem))]
     public partial struct PhysicsVelocitySystem : ISystem
     {
-        private NativeReference<uint> BodiesCount;
-
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSingleton>();
-            BodiesCount = new NativeReference<uint>(Allocator.Persistent);
-        }
-
-        public void OnDisable(ref SystemState state)
-        {
-            if (BodiesCount.IsCreated)
-            { 
-                BodiesCount.Dispose();
-            }
         }
 
         [BurstCompile]
@@ -47,7 +36,7 @@ namespace LittlePhysics
                 CollisionsMap = singleton.Collisions.Collisions,
                 BodiesList = singleton.BodiesList,
                 PhysicsVelocities = singleton.PhysicsVelocities,
-                BodiesCount = BodiesCount
+                BodiesCount = singleton.BodiesCount,
             }.Schedule(bodyCount, 32, combinedDep);
 
             state.Dependency = new ApplyVelocitiesJob
@@ -55,7 +44,7 @@ namespace LittlePhysics
                 BodiesList = singleton.BodiesList,
                 PhysicsVelocities = singleton.PhysicsVelocities,
                 DeltaTime = SystemAPI.Time.DeltaTime,
-                BodiesCount = BodiesCount
+                BodiesCount = singleton.BodiesCount,
             }.Schedule(bodyCount, 32, collisionDep);
 
             singleton.PhysicsJobHandle = state.Dependency;
@@ -66,21 +55,16 @@ namespace LittlePhysics
         private struct ApplyCollisionVelocitiesJob : IJobParallelFor
         {
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
-            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
+            [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
-            [NativeDisableContainerSafetyRestriction] public NativeReference<uint> BodiesCount;
+            [ReadOnly] public NativeReference<uint> BodiesCount;
 
             public void Execute(int index)
             {
-                if (index == 0)
-                {
-                    BodiesCount.Value = (uint)BodiesList.Length;
-                }
+                if ((uint)index >= BodiesCount.Value)
+                    return;
 
                 uint row = (uint)index;
-
-                if (index >= BodiesList.Length)
-                    return;
 
                 var body = BodiesList[index];
                 if (body.BodyType != BodyType.Dynamic)
@@ -126,17 +110,15 @@ namespace LittlePhysics
         [BurstCompile]
         private struct ApplyVelocitiesJob : IJobParallelFor
         {
-            [NativeDisableContainerSafetyRestriction] public NativeList<PhysicsBodyData> BodiesList;
+            [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsBodyData> BodiesList;
             [ReadOnly] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             public float DeltaTime;
             [ReadOnly] public NativeReference<uint> BodiesCount;
 
             public void Execute(int index)
             {
-                if (index >= BodiesCount.Value)
-                {
+                if ((uint)index >= BodiesCount.Value)
                     return;
-                }
 
                 var body = BodiesList[index];
 

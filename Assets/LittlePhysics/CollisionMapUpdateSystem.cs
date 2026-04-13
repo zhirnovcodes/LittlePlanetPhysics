@@ -64,13 +64,14 @@ namespace LittlePhysics
             var addDynamicJob = new AddBodiesJob
             {
                 BodiesList = physicsSingleton.BodiesList,
+                BodiesCount = physicsSingleton.BodiesCount,
                 SpatialMap = physicsSingleton.SpacialMap,
                 DynamicCollisionMap = DynamicCollisionMap,
                 TriggersCollisionMap = TriggersCollisionMap,
                 StaticCollisionMap = StaticCollisionMap,
                 Randoms = Randoms,
                 MaxCellsPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntity,
-            }.Schedule(physicsSingleton.BodiesList, 16, clearJob);
+            }.Schedule(physicsSingleton.BodiesList.Length, 16, clearJob);
 
             state.Dependency = addDynamicJob;
 
@@ -108,10 +109,11 @@ namespace LittlePhysics
         }
 
         [BurstCompile]
-        private struct AddBodiesJob : IJobParallelForDefer
+        private struct AddBodiesJob : IJobParallelFor
         {
             [ReadOnly] public SpacialMap SpatialMap;
-            [ReadOnly] public NativeList<PhysicsBodyData> BodiesList;
+            [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
+            [ReadOnly] public NativeReference<uint> BodiesCount;
 
             [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
             [NativeDisableParallelForRestriction] public NativeCollisionMap TriggersCollisionMap;
@@ -122,6 +124,9 @@ namespace LittlePhysics
 
             public void Execute(int index)
             {
+                if ((uint)index >= BodiesCount.Value)
+                    return;
+
                 var body = BodiesList[index];
 
                 if (!body.ShouldUpdateMap)

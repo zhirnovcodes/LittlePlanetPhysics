@@ -13,17 +13,9 @@ namespace LittlePhysics
             state.RequireForUpdate<SpacialMapSettingsComponent>();
         }
 
-        public void OnDestroy(ref SystemState state)
-        {
-            if (!SystemAPI.TryGetSingleton<PhysicsSingleton>(out var singleton))
-                return;
-            if (singleton.PhysicsVelocities.IsCreated)
-                singleton.PhysicsVelocities.Dispose();
-        }
-
         public void OnUpdate(ref SystemState state)
         {
-            if (!WaitForUpdateSystem(ref state))
+            if (!WaitForImportSystem(ref state))
                 return;
 
             if (!WaitForCollisionMapSystem(ref state))
@@ -37,24 +29,24 @@ namespace LittlePhysics
             state.Enabled = false;
         }
 
-        private static bool WaitForUpdateSystem(ref SystemState state)
+        private static bool WaitForImportSystem(ref SystemState state)
         {
-            var handle = state.World.GetExistingSystem<LittlePhysicsUpdateSystem>();
+            var handle = state.World.GetExistingSystem<ImportPhysicsDataSystem>();
             if (handle == SystemHandle.Null)
             {
-                Debug.Log("[LittlePhysicsBootstrap] WaitForUpdateSystem: LittlePhysicsUpdateSystem not registered yet; deferring.");
+                Debug.Log("[LittlePhysicsBootstrap] WaitForImportSystem: ImportPhysicsDataSystem not registered yet; deferring.");
                 return false;
             }
 
-            ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<LittlePhysicsUpdateSystem>(handle);
+            ref var importSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<ImportPhysicsDataSystem>(handle);
 
-            if (!littleSystem.Bodies.IsCreated || !littleSystem.BodiesEntities.IsCreated || !littleSystem.BodiesList.IsCreated)
+            if (!importSystem.BodiesList.IsCreated || !importSystem.PhysicsVelocities.IsCreated)
             {
-                Debug.Log("[LittlePhysicsBootstrap] WaitForUpdateSystem: Body buffers not ready (Bodies / BodiesEntities / BodiesList); deferring.");
+                Debug.Log("[LittlePhysicsBootstrap] WaitForImportSystem: BodiesList / PhysicsVelocities not ready; deferring.");
                 return false;
             }
 
-            Debug.Log("[LittlePhysicsBootstrap] WaitForUpdateSystem: LittlePhysicsUpdateSystem and body buffers ready.");
+            Debug.Log("[LittlePhysicsBootstrap] WaitForImportSystem: ImportPhysicsDataSystem buffers ready.");
             return true;
         }
 
@@ -99,13 +91,12 @@ namespace LittlePhysics
             return true;
         }
 
-        private void CreateSingleton(
-            ref SystemState state)
+        private void CreateSingleton(ref SystemState state)
         {
             Debug.Log("[LittlePhysicsBootstrap] CreateSingleton: Building PhysicsSingleton and playing back ECB.");
 
-            var littleSystemHandle = state.World.GetExistingSystem<LittlePhysicsUpdateSystem>();
-            ref var littleSystem = ref state.World.Unmanaged.GetUnsafeSystemRef< LittlePhysicsUpdateSystem>(littleSystemHandle);
+            var importHandle = state.World.GetExistingSystem<ImportPhysicsDataSystem>();
+            ref var importSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<ImportPhysicsDataSystem>(importHandle);
 
             var collisionMapHandle = state.World.GetExistingSystem<CollisionMapUpdateSystem>();
             ref var collisionMapSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionMapUpdateSystem>(collisionMapHandle);
@@ -114,18 +105,14 @@ namespace LittlePhysics
             ref var detectionSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionDetectionSystem>(detectionHandle);
 
             var spacialMap = SystemAPI.GetSingleton<SpacialMapSettingsComponent>().SpacialMap;
-            var physicsSettings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
-            int velocityCapacity = physicsSettings.BlobRef.Value.LodData.MaxEntityCount;
-            var physicsVelocities = new NativeArray<PhysicsVelocityData>(velocityCapacity, Allocator.Persistent);
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var singletonEntity = ecb.CreateEntity();
             ecb.AddComponent(singletonEntity, new PhysicsSingleton
             {
-                BodiesEntities = littleSystem.BodiesEntities,
-                Bodies = littleSystem.Bodies,
-                BodiesList = littleSystem.BodiesList,
-                PhysicsVelocities = physicsVelocities,
+                BodiesList = importSystem.BodiesList,
+                PhysicsVelocities = importSystem.PhysicsVelocities,
+                BodiesCount = importSystem.BodiesCount,
                 CollisionMap = new CollisionMapSingleton
                 {
                     DynamicCollisionMap = collisionMapSystem.DynamicCollisionMap,

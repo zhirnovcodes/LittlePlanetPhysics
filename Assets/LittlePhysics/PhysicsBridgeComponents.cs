@@ -128,10 +128,9 @@ namespace LittlePhysics
 
     public struct PhysicsSingleton : IComponentData
     {
-        [NoAlias] public NativeList<Entity> BodiesEntities;
-        [NoAlias] public NativeParallelHashMap<Entity, PhysicsBodyData> Bodies;
-        [NoAlias] public NativeList<PhysicsBodyData> BodiesList;
+        [NoAlias] public NativeArray<PhysicsBodyData> BodiesList;
         [NoAlias] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+        [NoAlias] public NativeReference<uint> BodiesCount;
         public CollisionMapSingleton CollisionMap;
         public CollisionsSingleton Collisions;
         public SpacialMap SpacialMap;

@@ -1,4 +1,3 @@
-using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -13,36 +12,55 @@ namespace LittlePhysics
     [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     public partial struct ImportPhysicsDataSystem : ISystem
     {
-        [NoAlias] public NativeArray<uint> BodyInLodCount;
+        [NoAlias] public NativeReference<uint> BodiesCount;
+        [NoAlias] public NativeArray<PhysicsBodyData> BodiesList;
+        [NoAlias] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+
+        private NativeArray<uint> bodiesInLodCount;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<PhysicsSingleton>();
             state.RequireForUpdate<PhysicsSettingsComponent>();
             state.RequireForUpdate<PhysicsStepComponent>();
-            BodyInLodCount = new NativeArray<uint>(2, Allocator.Persistent);
+            BodiesCount = new NativeReference<uint>(Allocator.Persistent);
+            bodiesInLodCount = new NativeArray<uint>(2, Allocator.Persistent);
         }
 
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            if (BodyInLodCount.IsCreated)
-                BodyInLodCount.Dispose();
+            if (BodiesCount.IsCreated)
+                BodiesCount.Dispose();
+            if (bodiesInLodCount.IsCreated)
+                bodiesInLodCount.Dispose();
+            if (BodiesList.IsCreated)
+                BodiesList.Dispose();
+            if (PhysicsVelocities.IsCreated)
+                PhysicsVelocities.Dispose();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
+            if (!BodiesList.IsCreated)
+            {
+                var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
+                var capacity = settings.BlobRef.Value.LodData.MaxEntityCount;
+                BodiesList = new NativeArray<PhysicsBodyData>(capacity, Allocator.Persistent);
+                PhysicsVelocities = new NativeArray<PhysicsVelocityData>(capacity, Allocator.Persistent);
+                return;
+            }
 
-            if (!singleton.BodiesList.IsCreated)
+            if (!SystemAPI.HasSingleton<PhysicsSingleton>())
                 return;
 
-            var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
-            var lodSettings = settings.BlobRef.Value.LodData;
+            var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
+
+            var settings2 = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
+            var lodSettings = settings2.BlobRef.Value.LodData;
             var lodMax = lodSettings.MaxEntityCount;
-            var rootMax = settings.BlobRef.Value.MaxEntitiesCount;
+            var rootMax = settings2.BlobRef.Value.MaxEntitiesCount;
             var maxEntitiesCount = lodMax > 0 ? lodMax : rootMax;
             var step = SystemAPI.GetSingleton<PhysicsStepComponent>();
 
@@ -56,20 +74,21 @@ namespace LittlePhysics
 
             var clearJob = new ClearJob
             {
-                BodiesList = singleton.BodiesList,
-                BodyInLodCount = BodyInLodCount,
+                BodiesCount = BodiesCount,
+                BodyInLodCount = bodiesInLodCount,
             }.Schedule(lodJob);
 
             var velocityLookup = SystemAPI.GetComponentLookup<PhysicsVelocityComponent>(true);
 
             var importJob = new ImportPhysicsDataJob
             {
-                BodiesList = singleton.BodiesList,
-                BodyInLodCount = BodyInLodCount,
+                BodiesList = BodiesList,
+                BodiesCount = BodiesCount,
+                BodyInLodCount = bodiesInLodCount,
                 MaxEntitiesCount = maxEntitiesCount,
                 MaxBodiesPerLod = maxEntitiesCount,
                 DeltaTime = SystemAPI.Time.DeltaTime,
-                PhysicsVelocities = singleton.PhysicsVelocities,
+                PhysicsVelocities = PhysicsVelocities,
                 VelocityLookup = velocityLookup,
             }.Schedule(clearJob);
 
@@ -83,12 +102,12 @@ namespace LittlePhysics
     [BurstCompile]
     public partial struct ClearJob : IJob
     {
-        public NativeList<PhysicsBodyData> BodiesList;
+        public NativeReference<uint> BodiesCount;
         public NativeArray<uint> BodyInLodCount;
 
         public void Execute()
         {
-            BodiesList.Clear();
+            BodiesCount.Value = 0;
             for (int i = 0; i < BodyInLodCount.Length; i++)
                 BodyInLodCount[i] = 0;
         }
@@ -118,7 +137,8 @@ namespace LittlePhysics
     [BurstCompile]
     public partial struct ImportPhysicsDataJob : IJobEntity
     {
-        public NativeList<PhysicsBodyData> BodiesList;
+        public NativeArray<PhysicsBodyData> BodiesList;
+        public NativeReference<uint> BodiesCount;
         public NativeArray<uint> BodyInLodCount;
         public int MaxEntitiesCount;
         public int MaxBodiesPerLod;
@@ -128,8 +148,7 @@ namespace LittlePhysics
 
         public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
-
-            if (BodiesList.Length >= MaxEntitiesCount)
+            if (BodiesCount.Value >= (uint)MaxEntitiesCount)
             {
                 return;
             }
@@ -172,12 +191,13 @@ namespace LittlePhysics
             }
 
             tag.IsEnabled = true;
+            int index = (int)BodiesCount.Value;
+            BodiesCount.Value++;
             BodyInLodCount[lod]++;
-            int index = BodiesList.Length;
-            var bodyData = body.ToBodyData(entity, transform, tag.LodIndex, shouldUpdateMap);
 
+            var bodyData = body.ToBodyData(entity, transform, tag.LodIndex, shouldUpdateMap);
             tag.Index = index;
-            BodiesList.Add(bodyData);
+            BodiesList[index] = bodyData;
 
             PhysicsVelocityData velocityData = default;
 
@@ -185,7 +205,7 @@ namespace LittlePhysics
             {
                 velocityData = velComp.ToVelocityData();
             }
-            
+
             PhysicsVelocities[index] = velocityData;
         }
     }

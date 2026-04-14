@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,7 +31,7 @@ namespace LittlePhysics
 
             EditorGUILayout.Space();
 
-            int cellCount = authoring.CellsWidth * authoring.CellsWidth * authoring.CellsWidth;
+            int cellCount = authoring.GridSize.x * authoring.GridSize.y * authoring.GridSize.z;
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.IntField("Total Cells Count", cellCount);
             EditorGUI.EndDisabledGroup();
@@ -40,23 +41,23 @@ namespace LittlePhysics
         {
             float cellSize = authoring.CellWidth;
             Vector3 gridMin = authoring.Position;
-            int gridSize = authoring.CellsWidth;
+            Vector3Int gridSize = new Vector3Int(authoring.GridSize.x, authoring.GridSize.y, authoring.GridSize.z);
 
-            float totalSize = gridSize * cellSize;
-            Vector3 gridCenter = gridMin + new Vector3(totalSize * 0.5f, totalSize * 0.5f, totalSize * 0.5f);
+            Vector3 totalSize = (Vector3)gridSize * cellSize;
+            Vector3 gridCenter = gridMin + totalSize * 0.5f;
 
             Handles.color = Color.cyan;
-            drawWireCube(gridCenter, totalSize, totalSize, totalSize);
+            drawWireCube(gridCenter, totalSize.x, totalSize.y, totalSize.z);
 
             if (authoring.ShouldDrawCells)
             {
                 Handles.color = Color.white;
 
-                for (int x = 0; x < gridSize; x++)
+                for (int x = 0; x < gridSize.x; x++)
                 {
-                    for (int y = 0; y < gridSize; y++)
+                    for (int y = 0; y < gridSize.y; y++)
                     {
-                        for (int z = 0; z < gridSize; z++)
+                        for (int z = 0; z < gridSize.z; z++)
                         {
                             Vector3 cellMin = gridMin + new Vector3(x * cellSize, y * cellSize, z * cellSize);
                             Vector3 cellCenter = cellMin + new Vector3(cellSize * 0.5f, cellSize * 0.5f, cellSize * 0.5f);

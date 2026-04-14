@@ -15,6 +15,7 @@ namespace LittlePhysics
         public float Friction = 0.5f;
         public float Hardness = 0.5f;
         public float TriggerUpdateInterval = 1f;
+        public Vector3 StartVeclocity;
         public GameObject Main;
 
         private sealed class Baker : Baker<PhysicsBodyAuthoring>
@@ -53,7 +54,10 @@ namespace LittlePhysics
 
                 if (authoring.BodyType == BodyType.Dynamic)
                 {
-                    AddComponent(entity, new PhysicsVelocityComponent());
+                    AddComponent(entity, new PhysicsVelocityComponent
+                    {
+                        Linear = authoring.StartVeclocity
+                    });
                 }
             }
         }

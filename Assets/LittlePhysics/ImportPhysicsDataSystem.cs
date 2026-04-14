@@ -148,6 +148,7 @@ namespace LittlePhysics
         {
             if (BodiesCount.Value >= (uint)MaxEntitiesCount)
             {
+                tag.IsEnabled = false;
                 return;
             }
 

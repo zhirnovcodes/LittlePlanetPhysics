@@ -104,7 +104,6 @@ namespace LittlePhysics
             {
                 DynamicCollisionMap.Clear();
                 TriggersCollisionMap.Clear();
-                StaticCollisionMap.Clear();
             }
         }
 

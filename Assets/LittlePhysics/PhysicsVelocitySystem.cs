@@ -31,12 +31,15 @@ namespace LittlePhysics
 
             int bodyCount = settings.BlobRef.Value.LodData.MaxEntityCount;
 
+            var deltaTime = SystemAPI.Time.DeltaTime;
+
             var collisionDep = new ApplyCollisionVelocitiesJob
             {
                 CollisionsMap = singleton.Collisions.Collisions,
                 BodiesList = singleton.BodiesList,
                 PhysicsVelocities = singleton.PhysicsVelocities,
                 BodiesCount = singleton.BodiesCount,
+                DeltaTime = deltaTime
             }.Schedule(bodyCount, 32, combinedDep);
 
             state.Dependency = new ApplyVelocitiesJob
@@ -55,9 +58,10 @@ namespace LittlePhysics
         private struct ApplyCollisionVelocitiesJob : IJobParallelFor
         {
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
-            [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
+            [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsBodyData> BodiesList;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             [ReadOnly] public NativeReference<uint> BodiesCount;
+            public float DeltaTime;
 
             public void Execute(int index)
             {
@@ -96,14 +100,17 @@ namespace LittlePhysics
 
                     var additionVelocity = new PhysicsVelocityData
                     {
-                        Linear = linearFromImpulse + pushForce,
+                        Linear = linearFromImpulse,
                         Angular = angularFromImpulse
                     };
+
+                    body.Position += pushForce * DeltaTime * 10f;
 
                     sumVelocity += additionVelocity;
                 }
 
                 PhysicsVelocities[index] = sumVelocity;
+                BodiesList[index] = body;
             }
         }
 

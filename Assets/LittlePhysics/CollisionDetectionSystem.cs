@@ -201,8 +201,8 @@ namespace LittlePhysics
 
             public unsafe void Execute(int cellIndex)
             {
-                CheckDynamicVsDynamic((uint)cellIndex);
                 CheckDynamicVsStatic((uint)cellIndex);
+                CheckDynamicVsDynamic((uint)cellIndex);
                 CheckTriggerVsDynamic((uint)cellIndex);
                 CheckTriggerVsStatic((uint)cellIndex);
             }

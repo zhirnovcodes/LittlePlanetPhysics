@@ -8,7 +8,7 @@ namespace LittlePhysics
     {
         public Vector3 Position = Vector3.zero;
         public float CellWidth = 1f;
-        public int CellsWidth = 16;
+        public int3 GridSize = new int3(16, 16, 16);
         public uint RandomSeed = 12345;
         public bool ShouldDrawCells = false;
 
@@ -26,10 +26,7 @@ namespace LittlePhysics
                             Position = authoring.Position,
                             CellSize = authoring.CellWidth
                         },
-                        GridSize = new Unity.Mathematics.int3(
-                            authoring.CellsWidth,
-                            authoring.CellsWidth,
-                            authoring.CellsWidth)
+                        GridSize = authoring.GridSize
                     }
                 });
                 AddComponent(entity, new PhysicsMapRandomComponent

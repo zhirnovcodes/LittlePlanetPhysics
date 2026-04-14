@@ -17,7 +17,7 @@ namespace LittlePhysics
     public partial struct CollisionMapDebugSystem : ISystem
     {
         private const int MaxEntitiesPerCell = 3;
-        private const int MaxDebugObjects = 100;
+        private const int MaxDebugObjects = 1000;
 
         private NativeList<Entity> spawnedEntities;
         private float elapsedTime;

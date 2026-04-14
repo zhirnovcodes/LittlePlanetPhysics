@@ -8,8 +8,8 @@ using Unity.Mathematics;
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(ExportPhysicsDataSystem))]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateAfter(typeof(PhysicsVelocitySystem))]
     public partial struct TriggerAttractionSystem : ISystem
     {
         [BurstCompile]
@@ -100,7 +100,7 @@ namespace LittlePhysics
                     }
 
                     var velocity = VelocityLookup[body.Main];
-                    velocity.Linear += direction * Power * DeltaTime;
+                    velocity.Linear += direction * Power;
                     VelocityLookup[body.Main] = velocity;
                 }
             }

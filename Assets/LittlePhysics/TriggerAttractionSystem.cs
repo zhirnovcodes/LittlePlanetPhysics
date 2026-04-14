@@ -33,13 +33,13 @@ namespace LittlePhysics
             int bodyCount = settings.BlobRef.Value.LodData.MaxEntityCount;
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
-
+            
             state.Dependency = new TriggerAttractionJob
             {
                 Collisions = singleton.Collisions.Collisions,
                 BodiesList = singleton.BodiesList,
+                PhysicsVelocities = singleton.PhysicsVelocities,
                 BodiesCount = singleton.BodiesCount,
-                VelocityLookup = SystemAPI.GetComponentLookup<PhysicsVelocityComponent>(false),
                 Power = attraction.Power,
                 DeltaTime = SystemAPI.Time.DeltaTime,
             }.Schedule(bodyCount, 32, combinedDep);
@@ -51,10 +51,10 @@ namespace LittlePhysics
         [BurstCompile]
         private struct TriggerAttractionJob : IJobParallelFor
         {
-            [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> Collisions;
+            [ReadOnly] public LittleHashMap<CollisionData> Collisions;
             [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
             [ReadOnly] public NativeReference<uint> BodiesCount;
-            [NativeDisableParallelForRestriction] public ComponentLookup<PhysicsVelocityComponent> VelocityLookup;
+            [NativeDisableParallelForRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             public float Power;
             public float DeltaTime;
 
@@ -94,14 +94,9 @@ namespace LittlePhysics
 
                     float3 direction = toTrigger / distance;
 
-                    if (!VelocityLookup.HasComponent(body.Main))
-                    {
-                        continue;
-                    }
-
-                    var velocity = VelocityLookup[body.Main];
+                    var velocity = PhysicsVelocities[index];
                     velocity.Linear += direction * Power;
-                    VelocityLookup[body.Main] = velocity;
+                    PhysicsVelocities[index] = velocity;
                 }
             }
         }

@@ -190,9 +190,9 @@ namespace LittlePhysics
         [BurstCompile]
         private struct PairsCheckJob : IJobParallelFor
         {
-            [NativeDisableParallelForRestriction] public NativeCollisionMap DynamicCollisionMap;
-            [NativeDisableParallelForRestriction] public NativeCollisionMap StaticCollisionMap;
-            [NativeDisableParallelForRestriction] public NativeCollisionMap TriggersCollisionMap;
+            [ReadOnly] public NativeCollisionMap DynamicCollisionMap;
+            [ReadOnly] public NativeCollisionMap StaticCollisionMap;
+            [ReadOnly] public NativeCollisionMap TriggersCollisionMap;
             [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
 
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<uint> PairMap;
@@ -264,15 +264,15 @@ namespace LittlePhysics
                 uint lo = math.min(bodyIndexA, bodyIndexB);
                 uint hi = math.max(bodyIndexA, bodyIndexB);
 
-                if (PairMap.TryAdd(lo, hi) == false)
-                {
-                    return;
-                }
-
                 var bodyA = BodiesList[(int)bodyIndexA];
                 var bodyB = BodiesList[(int)bodyIndexB];
 
                 if (bodyA.Main == bodyB.Main)
+                {
+                    return;
+                }
+
+                if (PairMap.TryAdd(lo, hi) == false)
                 {
                     return;
                 }

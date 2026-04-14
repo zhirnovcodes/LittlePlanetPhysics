@@ -415,6 +415,169 @@ namespace LittlePhysics
 
         #endregion
 
+        #region Box Traversal
+
+        /// <summary>
+        /// Initializes the box traversal iterator and returns the first cell.
+        /// Unlike cube traversal, accepts a non-uniform int3 size.
+        /// </summary>
+        public static bool InitializeBoxTraverse(this SpacialMap spacialMap, int startIndex, int3 size, ref TraverseCubeIterator iterator, out int cellId)
+        {
+            cellId = -1;
+
+            int3 startCell = spacialMap.IndexToCell(startIndex);
+            int3 clampedStartCell = math.max(startCell, new int3(0, 0, 0));
+
+            int3 actualSize = math.min(size, spacialMap.GridSize - clampedStartCell);
+
+            if (actualSize.x <= 0 || actualSize.y <= 0 || actualSize.z <= 0)
+            {
+                iterator = default;
+                iterator.IsComplete = true;
+                iterator.IsValid = false;
+                return false;
+            }
+
+            iterator.ActualObjectSize = actualSize;
+            iterator.StartPoint = clampedStartCell;
+            iterator.CurrentIndex = 0;
+            iterator.GridSize = spacialMap.GridSize;
+            iterator.IsValid = true;
+            iterator.IsComplete = false;
+
+            cellId = Grid3DExtensions.GridCellToIndex(spacialMap.GridSize, clampedStartCell);
+            return true;
+        }
+
+        /// <summary>
+        /// Traverses to the next cell in a box (non-uniform int3 size) through the grid.
+        /// Initializes the iterator on the first call.
+        /// </summary>
+        public static bool TraverseBoxNext(this SpacialMap spacialMap, int startIndex, int3 size, ref TraverseCubeIterator iterator, out int cellId)
+        {
+            cellId = -1;
+
+            if (!iterator.IsValid)
+                return spacialMap.InitializeBoxTraverse(startIndex, size, ref iterator, out cellId);
+
+            iterator.CurrentIndex++;
+
+            int totalCells = iterator.ActualObjectSize.x * iterator.ActualObjectSize.y * iterator.ActualObjectSize.z;
+
+            if (iterator.CurrentIndex >= totalCells)
+            {
+                iterator.IsComplete = true;
+                iterator.IsValid = false;
+                return false;
+            }
+
+            int3 localOffset = Grid3DExtensions.IndexToGridCell(iterator.ActualObjectSize, iterator.CurrentIndex);
+            int3 currentCellCoord = iterator.StartPoint + localOffset;
+
+            cellId = Grid3DExtensions.GridCellToIndex(iterator.GridSize, currentCellCoord);
+            return true;
+        }
+
+        /// <summary>
+        /// Initializes the optimized box traversal iterator with random sampling.
+        /// </summary>
+        public static bool InitializeBoxOptimizedTraverse(this SpacialMap spacialMap, int startIndex, int3 size, int maxCells, ref Unity.Mathematics.Random random, ref TraverseCubeOptimizedIterator iterator, out int cellId)
+        {
+            cellId = -1;
+
+            int3 startCell = spacialMap.IndexToCell(startIndex);
+            int3 clampedStartCell = math.max(startCell, new int3(0, 0, 0));
+
+            int3 actualSize = math.min(size, spacialMap.GridSize - clampedStartCell);
+
+            if (actualSize.x <= 0 || actualSize.y <= 0 || actualSize.z <= 0)
+            {
+                iterator = default;
+                iterator.IsComplete = true;
+                iterator.IsValid = false;
+                return false;
+            }
+
+            int totalCells = actualSize.x * actualSize.y * actualSize.z;
+            int maxIndex = totalCells - 1;
+
+            int maxStep = math.max(1, (int)math.ceil((float)totalCells / (float)maxCells));
+            int minStep = math.max(1, maxStep - 1);
+
+            int randomStartIndex = random.NextInt(0, maxStep + 1);
+
+            iterator.ActualObjectSize = actualSize;
+            iterator.StartPoint = clampedStartCell;
+            iterator.CurrentIndex = randomStartIndex;
+            iterator.MinIndex = 0;
+            iterator.MaxIndex = maxIndex;
+            iterator.MaxStep = maxStep;
+            iterator.MinStep = minStep;
+            iterator.GridSize = spacialMap.GridSize;
+            iterator.MaxCells = maxCells;
+            iterator.CellsFound = 1;
+            iterator.IsValid = true;
+            iterator.IsComplete = false;
+
+            int3 localOffset = Grid3DExtensions.IndexToGridCell(actualSize, randomStartIndex);
+            int3 firstCellCoord = clampedStartCell + localOffset;
+            cellId = Grid3DExtensions.GridCellToIndex(spacialMap.GridSize, firstCellCoord);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Traverses to the next cell in a box with random sampling.
+        /// Limits returned cells to maxCells.
+        /// </summary>
+        public static bool TraverseBoxOptimizedNext(this SpacialMap spacialMap, int startIndex, int3 size, int maxCells, ref Unity.Mathematics.Random random, ref TraverseCubeOptimizedIterator iterator, out int cellId)
+        {
+            cellId = -1;
+
+            if (!iterator.IsValid)
+                return spacialMap.InitializeBoxOptimizedTraverse(startIndex, size, maxCells, ref random, ref iterator, out cellId);
+
+            if (iterator.CellsFound >= iterator.MaxCells)
+            {
+                iterator.IsComplete = true;
+                iterator.IsValid = false;
+                return false;
+            }
+
+            int remainingIndices = iterator.MaxIndex - iterator.CurrentIndex;
+
+            if (remainingIndices <= 0)
+            {
+                iterator.IsComplete = true;
+                iterator.IsValid = false;
+                return false;
+            }
+
+            int maxStep = math.min(iterator.MaxStep, remainingIndices);
+            int minStep = math.min(iterator.MinStep, maxStep);
+
+            int stepRange = maxStep - minStep + 1;
+            int randomStep = minStep + random.NextInt(0, stepRange);
+
+            iterator.CurrentIndex += randomStep;
+
+            if (iterator.CurrentIndex > iterator.MaxIndex)
+            {
+                iterator.IsComplete = true;
+                iterator.IsValid = false;
+                return false;
+            }
+
+            int3 localOffset = Grid3DExtensions.IndexToGridCell(iterator.ActualObjectSize, iterator.CurrentIndex);
+            int3 currentCellCoord = iterator.StartPoint + localOffset;
+
+            cellId = Grid3DExtensions.GridCellToIndex(iterator.GridSize, currentCellCoord);
+            iterator.CellsFound++;
+            return true;
+        }
+
+        #endregion
+
         #region Sphere Traversal
 
         /// <summary>

@@ -151,15 +151,14 @@ namespace LittlePhysics
 
                 SpatialMap.GetCellIndices(body.Position, body.Scale, out int startCellIndex, out int3 cellSize);
                 int totalCellsInArea = cellSize.x * cellSize.y * cellSize.z;
-                int cubeSize = math.max(math.max(cellSize.x, cellSize.y), cellSize.z);
 
                 if (totalCellsInArea <= MaxCellsPerEntity)
                 {
-                    AddToDynamicMap(body.Position, body.Scale, startCellIndex, cubeSize, index);
+                    AddToDynamicMap(body.Position, body.Scale, startCellIndex, cellSize, index);
                 }
                 else
                 {
-                    AddDynamicToMapOptimized(body.Position, body.Scale, startCellIndex, cubeSize, ref random, index);
+                    AddDynamicToMapOptimized(body.Position, body.Scale, startCellIndex, cellSize, ref random, index);
                 }
 
                 Randoms[index] = random;
@@ -168,9 +167,8 @@ namespace LittlePhysics
             private void AddBodyToStatic(int index, PhysicsBodyData body)
             {
                 SpatialMap.GetCellIndices(body.Position, body.Scale, out int startCellIndex, out int3 cellSize);
-                int cubeSize = math.max(math.max(cellSize.x, cellSize.y), cellSize.z);
 
-                AddToStaticMap(body.Position, body.Scale, startCellIndex, cubeSize, index);
+                AddToStaticMap(body.Position, body.Scale, startCellIndex, cellSize, index);
             }
 
             private void AddBodyToTrigger(int index, PhysicsBodyData body)
@@ -179,60 +177,59 @@ namespace LittlePhysics
 
                 SpatialMap.GetCellIndices(body.Position, body.Scale, out int startCellIndex, out int3 cellSize);
                 int totalCellsInArea = cellSize.x * cellSize.y * cellSize.z;
-                int cubeSize = math.max(math.max(cellSize.x, cellSize.y), cellSize.z);
 
                 if (totalCellsInArea <= MaxCellsPerEntity)
                 {
-                    AddToTriggersMap(body.Position, body.Scale, startCellIndex, cubeSize, index);
+                    AddToTriggersMap(body.Position, body.Scale, startCellIndex, cellSize, index);
                 }
                 else
                 {
-                    AddTriggerToMapOptimized(body.Position, body.Scale, startCellIndex, cubeSize, ref random, index);
+                    AddTriggerToMapOptimized(body.Position, body.Scale, startCellIndex, cellSize, ref random, index);
                 }
 
                 Randoms[index] = random;
             }
 
-            private void AddToDynamicMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
+            private void AddToDynamicMap(float3 position, float scale, int startCellIndex, int3 cellSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
-                while (SpatialMap.TraverseCubeNext(startCellIndex, cubeSize, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseBoxNext(startCellIndex, cellSize, ref iterator, out int cellIndex))
                 {
                     DynamicCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddDynamicToMapOptimized(float3 position, float scale, int startCellIndex, int cubeSize, ref Random random, int bodyIndex)
+            private void AddDynamicToMapOptimized(float3 position, float scale, int startCellIndex, int3 cellSize, ref Random random, int bodyIndex)
             {
                 var iterator = new TraverseCubeOptimizedIterator();
-                while (SpatialMap.TraverseCubeOptimizedNext(startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseBoxOptimizedNext(startCellIndex, cellSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
                 {
                     DynamicCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddToStaticMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
+            private void AddToStaticMap(float3 position, float scale, int startCellIndex, int3 cellSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
-                while (SpatialMap.TraverseCubeNext(startCellIndex, cubeSize, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseBoxNext(startCellIndex, cellSize, ref iterator, out int cellIndex))
                 {
                     StaticCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddToTriggersMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
+            private void AddToTriggersMap(float3 position, float scale, int startCellIndex, int3 cellSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
-                while (SpatialMap.TraverseCubeNext(startCellIndex, cubeSize, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseBoxNext(startCellIndex, cellSize, ref iterator, out int cellIndex))
                 {
                     TriggersCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
             }
 
-            private void AddTriggerToMapOptimized(float3 position, float scale, int startCellIndex, int cubeSize, ref Random random, int bodyIndex)
+            private void AddTriggerToMapOptimized(float3 position, float scale, int startCellIndex, int3 cellSize, ref Random random, int bodyIndex)
             {
                 var iterator = new TraverseCubeOptimizedIterator();
-                while (SpatialMap.TraverseCubeOptimizedNext(startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseBoxOptimizedNext(startCellIndex, cellSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
                 {
                     TriggersCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }

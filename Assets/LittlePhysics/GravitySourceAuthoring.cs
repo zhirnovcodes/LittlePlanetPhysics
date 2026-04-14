@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -13,7 +13,8 @@ namespace LittlePhysics
         public float Radius = 10f;
 
         [Header("Directional")]
-        public Vector3 Direction = Vector3.down;
+        public bool IsUp = false;
+        public float SurfaceY = 0f;
         public float Strength = 9.81f;
 
         private sealed class Baker : Baker<GravitySourceAuthoring>
@@ -36,7 +37,8 @@ namespace LittlePhysics
                     case GravitySourceType.Directional:
                         AddComponent(entity, new DirectionalGravitySourceComponent
                         {
-                            Direction = math.normalizesafe(authoring.Direction),
+                            IsUp = authoring.IsUp,
+                            SurfaceY = authoring.SurfaceY,
                             Strength = authoring.Strength
                         });
                         break;

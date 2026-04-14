@@ -40,4 +40,18 @@ namespace LittlePhysics
 }
 ```
 
+Always wrap the body of every `if`, `else`, `for`, `foreach`, and `while` clause in braces `{}` on their own lines, even when the body is a single statement.
+
+```csharp
+// correct
+if (!colliding)
+{
+    return;
+}
+
+// incorrect
+if (!colliding)
+    return;
+```
+
 When generating or updating ECS code, prefer APIs and patterns compatible with Unity Entities `6.4.0`.

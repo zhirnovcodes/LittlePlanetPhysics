@@ -24,7 +24,9 @@ namespace LittlePhysics
         {
             var singleton = SystemAPI.GetSingleton<PhysicsSingleton>();
             if (!singleton.BodiesList.IsCreated || !singleton.PhysicsVelocities.IsCreated)
+            {
                 return;
+            }
 
             var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
             int bodyCount = settings.BlobRef.Value.LodData.MaxEntityCount;
@@ -73,17 +75,23 @@ namespace LittlePhysics
             public void Execute(int index)
             {
                 if ((uint)index >= BodiesCount.Value)
+                {
                     return;
+                }
 
                 var body = BodiesList[index];
                 if (body.BodyType != BodyType.Dynamic)
+                {
                     return;
+                }
 
                 float3 toSource = Source.Center - body.Position;
                 float distance = math.length(toSource);
 
                 if (distance < 0.001f)
+                {
                     return;
+                }
 
                 float3 direction = toSource / distance;
                 float gravityMagnitude = Source.SurfaceGravity * (Source.Radius * Source.Radius) / (distance * distance);
@@ -106,14 +114,34 @@ namespace LittlePhysics
             public void Execute(int index)
             {
                 if ((uint)index >= BodiesCount.Value)
+                {
                     return;
+                }
 
                 var body = BodiesList[index];
                 if (body.BodyType != BodyType.Dynamic)
+                {
                     return;
+                }
+
+                float radius = body.Scale * 0.5f;
+                float surfaceEdge = Source.IsUp
+                    ? body.Position.y + radius
+                    : body.Position.y - radius;
+
+                bool atSurface = Source.IsUp
+                    ? surfaceEdge >= Source.SurfaceY
+                    : surfaceEdge <= Source.SurfaceY;
+
+                if (atSurface)
+                {
+                    return;
+                }
+
+                float3 direction = Source.IsUp ? new float3(0f, 1f, 0f) : new float3(0f, -1f, 0f);
 
                 var velocity = PhysicsVelocities[index];
-                velocity.Linear += Source.Direction * Source.Strength * DeltaTime;
+                velocity.Linear += direction * Source.Strength * DeltaTime;
                 PhysicsVelocities[index] = velocity;
             }
         }

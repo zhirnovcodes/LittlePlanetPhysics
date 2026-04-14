@@ -15,12 +15,15 @@ namespace LittlePhysics
         public float Friction = 0.5f;
         public float Hardness = 0.5f;
         public float TriggerUpdateInterval = 1f;
+        public GameObject Main;
 
         private sealed class Baker : Baker<PhysicsBodyAuthoring>
         {
             public override void Bake(PhysicsBodyAuthoring authoring)
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
+                var main = authoring.Main == null ? entity : GetEntity(authoring.Main, TransformUsageFlags.Dynamic);
+
                 AddComponent(entity, new PhysicsBodyComponent
                 {
                     BodyType = authoring.BodyType,
@@ -31,7 +34,8 @@ namespace LittlePhysics
                     Mass = authoring.Mass,
                     Bounciness = authoring.Bounciness,
                     Friction = authoring.Friction,
-                    Hardness = authoring.Hardness
+                    Hardness = authoring.Hardness,
+                    Main = main
                 });
 
                 AddComponent(entity, new PhysicsBodyUpdateComponent

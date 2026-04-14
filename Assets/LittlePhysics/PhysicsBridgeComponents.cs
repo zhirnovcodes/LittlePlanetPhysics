@@ -42,7 +42,8 @@ namespace LittlePhysics
     public enum ColliderType
     {
         Sphere,
-        Capsule
+        Capsule,
+        SimplePlane
     }
 
     public struct DynamicPhysicsData

@@ -18,7 +18,8 @@ namespace LittlePhysics
 
     public struct DirectionalGravitySourceComponent : IComponentData
     {
-        public float3 Direction;
+        public bool IsUp;
+        public float SurfaceY;
         public float Strength;
     }
 }

@@ -215,7 +215,7 @@ namespace LittlePhysics
             private void AddToStaticMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
-                while (SpatialMap.TraverseSphereNext(position, scale, startCellIndex, cubeSize, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseCubeNext(startCellIndex, cubeSize, ref iterator, out int cellIndex))
                 {
                     StaticCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
@@ -224,7 +224,7 @@ namespace LittlePhysics
             private void AddToTriggersMap(float3 position, float scale, int startCellIndex, int cubeSize, int bodyIndex)
             {
                 var iterator = new TraverseCubeIterator();
-                while (SpatialMap.TraverseSphereNext(position, scale, startCellIndex, cubeSize, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseCubeNext(startCellIndex, cubeSize, ref iterator, out int cellIndex))
                 {
                     TriggersCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }
@@ -233,7 +233,7 @@ namespace LittlePhysics
             private void AddTriggerToMapOptimized(float3 position, float scale, int startCellIndex, int cubeSize, ref Random random, int bodyIndex)
             {
                 var iterator = new TraverseCubeOptimizedIterator();
-                while (SpatialMap.TraverseSphereOptimizedNext(position, scale, startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
+                while (SpatialMap.TraverseCubeOptimizedNext(startCellIndex, cubeSize, MaxCellsPerEntity, ref random, ref iterator, out int cellIndex))
                 {
                     TriggersCollisionMap.TryAdd((uint)cellIndex, (uint)bodyIndex);
                 }

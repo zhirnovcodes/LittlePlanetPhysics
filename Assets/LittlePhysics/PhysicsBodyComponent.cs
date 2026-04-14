@@ -40,10 +40,11 @@ namespace LittlePhysics
         public float Bounciness;
         public float Friction;
         public float Hardness;
+        public Entity Main;
 
-        public PhysicsBodyData ToBodyData(Entity entity, LocalTransform transform, int lodIndex, bool shouldUpdateMap = true) => new PhysicsBodyData
+        public PhysicsBodyData ToBodyData(LocalTransform transform, int lodIndex, bool shouldUpdateMap = true) => new PhysicsBodyData
         {
-            Main = entity,
+            Main = Main,
             BodyType = BodyType,
             ColliderType = ColliderType,
             Position = transform.Position + LocalPosition,

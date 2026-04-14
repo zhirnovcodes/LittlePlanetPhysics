@@ -73,17 +73,17 @@ namespace LittlePhysics
                     continue;
 
                 var iterator = collisions.GetIterator();
-                /*
-                while (collisions.Traverse(ref iterator, out (BodiesPair, ))) ;
+
+                while (collisions.Traverse(ref iterator, out var pair))
                 {
                     if (spawnedEntities.Length >= MaxDebugObjects)
                         break;
 
                     var spawned = state.EntityManager.Instantiate(config.CellPrefab);
-                    var transform = LocalTransform.FromPosition(item.ContactPoint);
+                    var transform = LocalTransform.FromPosition(pair.Item2.ContactPoint);
                     state.EntityManager.SetComponentData(spawned, transform);
                     spawnedEntities.Add(spawned);
-                }*/
+                }
                 
             }
         }

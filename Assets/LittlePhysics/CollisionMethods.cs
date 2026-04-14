@@ -22,6 +22,11 @@ namespace LittlePhysics
         public float Scale; // diameter (radius * 2)
     }
 
+    public struct SimplePlane
+    {
+        public float Y;
+    }
+
     [BurstCompile]
     public static class CollisionMethods
     {
@@ -91,6 +96,23 @@ namespace LittlePhysics
                 contactPoint = axisClosest + normal * capsuleRadius;
             }
 
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true when a sphere overlaps a horizontal infinite plane at plane.Y, tested from above only.
+        /// Contact point is on the plane surface directly below the sphere center.
+        /// </summary>
+        public static bool IsSphereCollidingSimplePlane(Sphere sphere, SimplePlane plane, out float3 contactPoint)
+        {
+            contactPoint = float3.zero;
+
+            float radius = sphere.Scale * 0.5f;
+
+            if (sphere.Position.y - radius > plane.Y + CollisionEpsilon)
+                return false;
+
+            contactPoint = new float3(sphere.Position.x, plane.Y, sphere.Position.z);
             return true;
         }
 
@@ -213,10 +235,26 @@ namespace LittlePhysics
 
         /// <summary>
         /// Returns true when two physics bodies overlap, with the contact point on the surface of body1 facing body2.
-        /// Supports Sphere-Sphere, Sphere-Capsule, Capsule-Sphere, and Capsule-Capsule pairs.
+        /// Supports Sphere-Sphere, Sphere-Capsule, Capsule-Sphere, Capsule-Capsule, and Sphere-SimplePlane pairs.
         /// </summary>
         public static bool AreBodiesColliding(PhysicsBodyData body1, PhysicsBodyData body2, out float3 contactPoint)
         {
+            if (body1.ColliderType == ColliderType.SimplePlane)
+            {
+                return IsSphereCollidingSimplePlane(
+                    new Sphere { Position = body2.Position, Scale = body2.Scale },
+                    new SimplePlane { Y = body1.Position.y },
+                    out contactPoint);
+            }
+
+            if (body2.ColliderType == ColliderType.SimplePlane)
+            {
+                return IsSphereCollidingSimplePlane(
+                    new Sphere { Position = body1.Position, Scale = body1.Scale },
+                    new SimplePlane { Y = body2.Position.y },
+                    out contactPoint);
+            }
+
             bool b1Sphere = body1.ColliderType == ColliderType.Sphere;
             bool b2Sphere = body2.ColliderType == ColliderType.Sphere;
 

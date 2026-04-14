@@ -22,6 +22,9 @@ namespace LittlePhysics
                 return contactPoint - axisPoint;
             }
 
+            if (body.ColliderType == ColliderType.SimplePlane)
+                return float3.zero;
+
             return contactPoint - body.Position;
         }
 

@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 17899371}
   - component: {fileID: 17899370}
   - component: {fileID: 17899372}
+  - component: {fileID: 17899373}
   m_Layer: 0
   m_Name: ContactCheck
   m_TagString: Untagged
@@ -144,7 +145,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 17899369}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7ef7c12a5790c084c8c8cc7e8ddcc61b, type: 3}
   m_Name: 
@@ -182,6 +183,20 @@ MonoBehaviour:
   UpdateTimeSec: 0.5
   CellPrefab: {fileID: 6038661850501266947, guid: 763f7c8050066b948baf3f35037b5bc6, type: 3}
   BodyToDebug: 1
+--- !u!114 &17899373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 17899369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29c2164be51461145a75aa247126b495, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.PhysicsCollisionEditorDebugAuthoring
+  Body1Filter: 0
+  Body2Filter: 2
 --- !u!1 &290620806
 GameObject:
   m_ObjectHideFlags: 0

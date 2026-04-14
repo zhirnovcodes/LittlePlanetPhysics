@@ -47,12 +47,12 @@ MonoBehaviour:
   BodyType: 2
   ColliderType: 0
   LocalPosition: {x: 0, y: 0, z: 0}
-  Scale: 5
+  Scale: 3
   Mass: 1
   Bounciness: 0.5
   Friction: 0.5
   Hardness: 0.5
-  TriggerUpdateInterval: 0.05
+  TriggerUpdateInterval: 0.1
   StartVeclocity: {x: 0, y: 0, z: 0}
   Main: {fileID: 8404245804384635011}
 --- !u!1 &8404245804384635011

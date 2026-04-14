@@ -241,7 +241,7 @@ namespace LittlePhysics
                     var innerIt = DynamicCollisionMap.GetCellIterator(cellKey);
                     while (DynamicCollisionMap.TraverseCell(ref innerIt, out uint bodyIndexB))
                     {
-                        CheckCollision(bodyIndexA, bodyIndexB);
+                        CheckTrigger(bodyIndexA, bodyIndexB);
                     }
                 }
             }
@@ -254,7 +254,7 @@ namespace LittlePhysics
                     var innerIt = StaticCollisionMap.GetCellIterator(cellKey);
                     while (StaticCollisionMap.TraverseCell(ref innerIt, out uint bodyIndexB))
                     {
-                        CheckCollision(bodyIndexA, bodyIndexB);
+                        CheckTrigger(bodyIndexA, bodyIndexB);
                     }
                 }
             }
@@ -306,6 +306,44 @@ namespace LittlePhysics
                 CollisionsMap.TryAdd((uint)bodyIndexA, collision);
 
                 CollisionsMap.TryAdd((uint)bodyIndexB, collision);
+            }
+
+            private unsafe void CheckTrigger(uint triggerIndex, uint nonTriggerIndex)
+            {
+                var trigger = BodiesList[(int)triggerIndex];
+                var nonTrigger = BodiesList[(int)nonTriggerIndex];
+
+                if (trigger.Main == nonTrigger.Main)
+                {
+                    return;
+                }
+
+                var lo = math.min(triggerIndex, nonTriggerIndex);
+                var hi = math.max(triggerIndex, nonTriggerIndex);
+
+                if (PairMap.TryAdd(lo, hi) == false)
+                {
+                    return;
+                }
+
+                if (CollisionsMap.CanAdd((uint)triggerIndex) == false
+                    && CollisionsMap.CanAdd((uint)nonTriggerIndex) == false)
+                {
+                    return;
+                }
+
+                if (CollisionMethods.AreBodiesColliding(trigger, nonTrigger, out var contactPoint) == false)
+                {
+                    return;
+                }
+
+                var collision = new CollisionData(
+                    triggerIndex, nonTriggerIndex, contactPoint,
+                    float3.zero, float3.zero, float3.zero, float3.zero);
+
+                CollisionsMap.TryAdd((uint)triggerIndex, collision);
+
+                CollisionsMap.TryAdd((uint)nonTriggerIndex, collision);
             }
         }
     }

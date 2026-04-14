@@ -42,15 +42,15 @@ namespace LittlePhysics
         public float Hardness;
         public Entity Main;
 
-        public PhysicsBodyData ToBodyData(LocalTransform transform, int lodIndex, bool shouldUpdateMap = true) => new PhysicsBodyData
+        public PhysicsBodyData ToBodyData(LocalToWorld localToWorld, int lodIndex, bool shouldUpdateMap = true) => new PhysicsBodyData
         {
             Main = Main,
             BodyType = BodyType,
             ColliderType = ColliderType,
-            Position = transform.Position + LocalPosition,
+            Position = localToWorld.Position + LocalPosition,
             RotationOffset = RotationOffset,
-            Scale = transform.Scale * Scale,
-            Up = math.rotate(transform.Rotation, math.up()),
+            Scale = math.length(localToWorld.Value.c0.xyz) * Scale,
+            Up = math.rotate(localToWorld.Rotation, math.up()),
             Mass = Mass,
             LodIndex = lodIndex,
             Bounciness = Bounciness,

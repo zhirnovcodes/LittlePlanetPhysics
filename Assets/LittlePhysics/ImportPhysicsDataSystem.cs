@@ -117,9 +117,9 @@ namespace LittlePhysics
         public CameraData Camera;
         public float2 DistanceRange;
 
-        public void Execute(in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
+        public void Execute(in LocalToWorld localToWorld, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
-            float3 worldPos = transform.Position + body.LocalPosition;
+            float3 worldPos = localToWorld.Position + body.LocalPosition;
             float dist = math.distance(Camera.CameraPosition, worldPos);
             bool inDist = dist >= DistanceRange.x && dist <= DistanceRange.y;
 
@@ -144,7 +144,7 @@ namespace LittlePhysics
         public NativeArray<PhysicsVelocityData> PhysicsVelocities;
         [ReadOnly] public ComponentLookup<PhysicsVelocityComponent> VelocityLookup;
 
-        public void Execute(Entity entity, in LocalTransform transform, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
+        public void Execute(Entity entity, in LocalToWorld localToWorld, in PhysicsBodyComponent body, ref PhysicsBodyUpdateComponent tag)
         {
             if (BodiesCount.Value >= (uint)MaxEntitiesCount)
             {
@@ -194,7 +194,7 @@ namespace LittlePhysics
             BodiesCount.Value++;
             BodyInLodCount[lod]++;
 
-            var bodyData = body.ToBodyData(transform, tag.LodIndex, shouldUpdateMap);
+            var bodyData = body.ToBodyData(localToWorld, tag.LodIndex, shouldUpdateMap);
             tag.Index = index;
             BodiesList[index] = bodyData;
 

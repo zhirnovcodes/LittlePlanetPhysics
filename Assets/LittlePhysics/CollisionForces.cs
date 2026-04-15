@@ -8,11 +8,12 @@ namespace LittlePhysics
     {
         /// <summary>
         /// Returns the radius vector from the body's effective rotation center to the contact point.
-        /// Sphere: from sphere center to contact point.
+        /// Sphere / ReverseSphere: from sphere center to contact point.
         /// Capsule: from the nearest point on the capsule's core axis segment to the contact point
         ///          (perpendicular from axis to surface).
+        /// SimplePlane: zero (no rotation).
         /// </summary>
-        private static float3 GetRadiusVector(in PhysicsBodyData body, float3 contactPoint)
+        public static float3 GetRadiusVector(in PhysicsBodyData body, float3 contactPoint)
         {
             if (body.ColliderType == ColliderType.Capsule)
             {
@@ -24,6 +25,9 @@ namespace LittlePhysics
 
             if (body.ColliderType == ColliderType.SimplePlane)
                 return float3.zero;
+
+            if (body.ColliderType == ColliderType.ReverseSphere)
+                return - contactPoint + body.Position;
 
             return contactPoint - body.Position;
         }

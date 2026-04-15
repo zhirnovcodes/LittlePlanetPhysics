@@ -6,7 +6,8 @@ namespace LittlePhysics
     public enum SurfaceType
     {
         SimplePlane,
-        Sphere
+        Sphere,
+        ReverseSphere
     }
 
     public struct CollisionSurfaceComponent : IComponentData
@@ -20,6 +21,49 @@ namespace LittlePhysics
 
         public PhysicsBodyData ToBodyData()
         {
+            switch (SurfaceType)
+            {
+                case SurfaceType.SimplePlane:
+                    {
+                        return new PhysicsBodyData
+                        {
+                            BodyType = BodyType.Static,
+                            ColliderType = ColliderType.SimplePlane,
+                            Position = new float3(0f, Plane.Y, 0f),
+                            Scale = 0,
+                            Bounciness = Bounciness,
+                            Hardness = Hardness,
+                            Layer = Layer,
+                        };
+                    }
+                case SurfaceType.Sphere:
+                    {
+                        return new PhysicsBodyData
+                        {
+                            BodyType = BodyType.Static,
+                            ColliderType = ColliderType.Sphere,
+                            Position = Sphere.Position,
+                            Scale = Sphere.Scale,
+                            Bounciness = Bounciness,
+                            Hardness = Hardness,
+                            Layer = Layer,
+                        };
+                    }
+                case SurfaceType.ReverseSphere:
+                    {
+                        return new PhysicsBodyData
+                        {
+                            BodyType = BodyType.Static,
+                            ColliderType = ColliderType.ReverseSphere,
+                            Position = Sphere.Position,
+                            Scale = Sphere.Scale,
+                            Bounciness = Bounciness,
+                            Hardness = Hardness,
+                            Layer = Layer,
+                        };
+                    }
+            }
+
             return new PhysicsBodyData
             {
                 BodyType = BodyType.Static,

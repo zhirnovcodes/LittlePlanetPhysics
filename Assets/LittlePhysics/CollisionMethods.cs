@@ -27,6 +27,12 @@ namespace LittlePhysics
         public float Y;
     }
 
+    public struct InverseSphere
+    {
+        public float3 Position;
+        public float Scale; // diameter
+    }
+
     [BurstCompile]
     public static class CollisionMethods
     {
@@ -234,52 +240,69 @@ namespace LittlePhysics
         }
 
         /// <summary>
+        /// Returns true when a sphere overlaps the inner boundary of a reverse sphere (a sphere whose
+        /// collision region is its interior). The sphere is colliding when it extends outside the reverse
+        /// sphere's inner surface. Contact point is on the inner surface of the reverse sphere, in the
+        /// direction from its center toward the sphere.
+        /// </summary>
+        public static bool IsSphereCollidingReverseSphere(Sphere sphere, InverseSphere reverseSphere, out float3 contactPoint)
+        {
+            contactPoint = float3.zero;
+
+            float reverseRadius = reverseSphere.Scale * 0.5f;
+            float sphereRadius = sphere.Scale * 0.5f;
+
+            float3 delta = sphere.Position - reverseSphere.Position;
+            float dist = math.length(delta);
+
+            if (dist + sphereRadius < reverseRadius - CollisionEpsilon)
+            {
+                return false;
+            }
+
+            float3 normal = dist < 0.0001f ? new float3(1f, 0f, 0f) : delta / dist;
+            contactPoint = reverseSphere.Position + normal * reverseRadius;
+            return true;
+        }
+
+        /// <summary>
         /// Returns true when two physics bodies overlap, with the contact point on the surface of body1 facing body2.
-        /// Supports Sphere-Sphere, Sphere-Capsule, Capsule-Sphere, Capsule-Capsule, and Sphere-SimplePlane pairs.
+        /// Supports all pairs of Sphere, Capsule, SimplePlane, and ReverseSphere collider types.
         /// </summary>
         public static bool AreBodiesColliding(PhysicsBodyData body1, PhysicsBodyData body2, out float3 contactPoint)
         {
-            if (body1.ColliderType == ColliderType.SimplePlane)
+            switch (body1.ColliderType, body2.ColliderType)
             {
-                return IsSphereCollidingSimplePlane(
-                    new Sphere { Position = body2.Position, Scale = body2.Scale },
-                    new SimplePlane { Y = body1.Position.y },
-                    out contactPoint);
+                case (ColliderType.Sphere, ColliderType.Sphere):
+                    return AreSpheresColliding(body1.GetSphere(), body2.GetSphere(), out contactPoint);
+
+                case (ColliderType.Sphere, ColliderType.Capsule):
+                    return IsSphereCollidingCapsule(body1.GetSphere(), body2.GetCapsule(), out contactPoint);
+
+                case (ColliderType.Capsule, ColliderType.Sphere):
+                    return IsSphereCollidingCapsule(body2.GetSphere(), body1.GetCapsule(), out contactPoint);
+
+                case (ColliderType.Capsule, ColliderType.Capsule):
+                    return AreCapsulesColliding(body1.GetCapsule(), body2.GetCapsule(), out contactPoint);
+
+                case (ColliderType.Sphere, ColliderType.SimplePlane):
+                case (ColliderType.Capsule, ColliderType.SimplePlane):
+                    return IsSphereCollidingSimplePlane(body1.GetSphere(), body2.GetSimplePlane(), out contactPoint);
+
+                case (ColliderType.SimplePlane, ColliderType.Sphere):
+                case (ColliderType.SimplePlane, ColliderType.Capsule):
+                    return IsSphereCollidingSimplePlane(body2.GetSphere(), body1.GetSimplePlane(), out contactPoint);
+
+                case (ColliderType.Sphere, ColliderType.ReverseSphere):
+                    return IsSphereCollidingReverseSphere(body1.GetSphere(), body2.GetInverseSphere(), out contactPoint);
+
+                case (ColliderType.ReverseSphere, ColliderType.Sphere):
+                    return IsSphereCollidingReverseSphere(body2.GetSphere(), body1.GetInverseSphere(), out contactPoint);
+
+                default:
+                    contactPoint = float3.zero;
+                    return false;
             }
-
-            if (body2.ColliderType == ColliderType.SimplePlane)
-            {
-                return IsSphereCollidingSimplePlane(
-                    new Sphere { Position = body1.Position, Scale = body1.Scale },
-                    new SimplePlane { Y = body2.Position.y },
-                    out contactPoint);
-            }
-
-            bool b1Sphere = body1.ColliderType == ColliderType.Sphere;
-            bool b2Sphere = body2.ColliderType == ColliderType.Sphere;
-
-            if (b1Sphere && b2Sphere)
-                return AreSpheresColliding(
-                    new Sphere { Position = body1.Position, Scale = body1.Scale },
-                    new Sphere { Position = body2.Position, Scale = body2.Scale },
-                    out contactPoint);
-
-            if (b1Sphere)
-                return IsSphereCollidingCapsule(
-                    new Sphere { Position = body1.Position, Scale = body1.Scale },
-                    new Capsule { Position = body2.Position, Up = body2.Up, Scale = body2.Scale },
-                    out contactPoint);
-
-            if (b2Sphere)
-                return IsSphereCollidingCapsule(
-                    new Sphere { Position = body2.Position, Scale = body2.Scale },
-                    new Capsule { Position = body1.Position, Up = body1.Up, Scale = body1.Scale },
-                    out contactPoint);
-
-            return AreCapsulesColliding(
-                new Capsule { Position = body1.Position, Up = body1.Up, Scale = body1.Scale },
-                new Capsule { Position = body2.Position, Up = body2.Up, Scale = body2.Scale },
-                out contactPoint);
         }
 
         private static bool AreCapsulesColliding(Capsule a, Capsule b, out float3 contactPoint)

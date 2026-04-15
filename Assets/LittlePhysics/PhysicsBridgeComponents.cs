@@ -39,11 +39,12 @@ namespace LittlePhysics
         [NoAlias] public LittleHashMap<CollisionData> Collisions;
     }
 
-    public enum ColliderType
+    public enum ColliderType : byte
     {
         Sphere,
         Capsule,
-        SimplePlane
+        SimplePlane,
+        ReverseSphere
     }
 
     public struct DynamicPhysicsData
@@ -90,6 +91,11 @@ namespace LittlePhysics
         public bool ShouldUpdateMap;
         public int LodIndex;
         public int Layer;
+
+        public Sphere GetSphere() => new Sphere { Position = Position, Scale = Scale };
+        public Capsule GetCapsule() => new Capsule { Position = Position, Up = Up, Scale = Scale };
+        public SimplePlane GetSimplePlane() => new SimplePlane { Y = Position.y };
+        public InverseSphere GetInverseSphere() => new InverseSphere { Position = Position, Scale = Scale };
 
         public DynamicPhysicsData ToDynamicData() => new DynamicPhysicsData
         {

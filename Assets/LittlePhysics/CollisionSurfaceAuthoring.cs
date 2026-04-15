@@ -11,7 +11,6 @@ namespace LittlePhysics
         public float PlaneY;
 
         [Header("Sphere")]
-        public float SphereRadius = 10f;
 
         [Header("Material")]
         public float Bounciness = 0.5f;
@@ -29,7 +28,7 @@ namespace LittlePhysics
                     Sphere = new Sphere
                     {
                         Position = authoring.transform.position,
-                        Scale = authoring.SphereRadius * 2f
+                        Scale = authoring.transform.localScale.x
                     },
                     Bounciness = authoring.Bounciness,
                     Hardness = authoring.Hardness,

@@ -199,7 +199,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 0
   PlaneY: 0
-  SphereRadius: 10
   Bounciness: 0.5
   Hardness: 1
 --- !u!114 &363044240
@@ -357,7 +356,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &813235659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -370,9 +369,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e175a92e66f087b4ea674ff64feefa67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
-  SurfaceType: 1
+  SurfaceType: 2
   PlaneY: 0
-  SphereRadius: 0.01
   Bounciness: 0
   Hardness: 1
 --- !u!114 &813235660
@@ -382,7 +380,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 813235658}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 907e7d8b1c99f7a46870e530470a60fe, type: 3}
   m_Name: 
@@ -400,7 +398,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 813235658}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -418,7 +416,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b17038e50e64db04cb50de355ca36b4d, type: 2}
+  - {fileID: 2100000, guid: a43d462aea8ce2c4d9473c9ef791b79c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -459,7 +457,7 @@ Transform:
   m_GameObject: {fileID: 813235658}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.6, y: 15.6, z: 0}
   m_LocalScale: {x: 50, y: 50, z: 50}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -599,8 +597,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpawnAuthoring
   Prefab: {fileID: 8404245804384635011, guid: fa0be41b3ce4a254cb42844e124faf85, type: 3}
-  MaxCount: 1000
-  SingleSpawnCount: {x: 8000, y: 10000}
+  MaxCount: 5000
+  SingleSpawnCount: {x: 400, y: 1000}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
   RandomSeed: 100
@@ -682,12 +680,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06368027861c300439547e5760fe0093, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.PhysicsSettingsAuthoring
-  MaxEntitiesCount: 10000
+  MaxEntitiesCount: 3000
   LodData:
     DistanceRange:
       x: 0
       y: 1000
-    MaxEntityCount: 1000
+    MaxEntityCount: 10000
     MaxDynamicsInCells: 4
     MaxTriggersInCells: 4
     MaxStaticInCells: 1

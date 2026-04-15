@@ -33,6 +33,11 @@ namespace LittlePhysics
             var deltaTime = SystemAPI.Time.DeltaTime;
             var currentPhysicsBodyCount = physicsBodyQuery.CalculateEntityCount();
 
+            if (SystemAPI.HasSingleton<BodiesCountComponent>())
+            {
+                SystemAPI.GetSingletonRW<BodiesCountComponent>().ValueRW.Count = currentPhysicsBodyCount;
+            }
+
             foreach (var spawner in SystemAPI.Query<RefRW<SpawnComponent>>())
             {
                 ref var spawn = ref spawner.ValueRW;

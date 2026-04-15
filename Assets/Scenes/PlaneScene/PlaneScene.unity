@@ -119,6 +119,115 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &321210778
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 321210782}
+  - component: {fileID: 321210781}
+  - component: {fileID: 321210780}
+  - component: {fileID: 321210779}
+  m_Layer: 0
+  m_Name: Spawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!23 &321210779
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321210778}
+  m_Enabled: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a43d462aea8ce2c4d9473c9ef791b79c, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &321210780
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321210778}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &321210781
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321210778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29b078ee8b06d194aaab64c543458a4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpawnAuthoring
+  Prefab: {fileID: 5556019771748717147, guid: c6684cef51633444189a89248aa1df21, type: 3}
+  MaxCount: 25000
+  SingleSpawnCount: {x: 8000, y: 10000}
+  SpawnIntervalSec: {x: 0.1, y: 0.3}
+  MassRange: {x: 0.5, y: 2}
+  RandomSeed: 100
+--- !u!4 &321210782
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321210778}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 22.2, y: 3.9916, z: -0}
+  m_LocalScale: {x: 15.248, y: 7.984, z: 32}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &363044238
 GameObject:
   m_ObjectHideFlags: 0
@@ -153,7 +262,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 0
   PlaneY: 0
-  SphereRadius: 10
   Bounciness: 0.5
   Hardness: 1
 --- !u!114 &363044240
@@ -163,7 +271,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 363044238}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 907e7d8b1c99f7a46870e530470a60fe, type: 3}
   m_Name: 
@@ -172,7 +280,6 @@ MonoBehaviour:
   SurfaceGravity: 9.81
   Radius: 10
   IsUp: 0
-  SurfaceY: 0
   Strength: 9.81
 --- !u!23 &363044241
 MeshRenderer:
@@ -280,7 +387,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 1
   PlaneY: 0
-  SphereRadius: 0.01
   Bounciness: 0
   Hardness: 1
 --- !u!114 &813235660
@@ -299,7 +405,6 @@ MonoBehaviour:
   SurfaceGravity: 2376.5
   Radius: 0.1
   IsUp: 0
-  SurfaceY: 0
   Strength: 9.81
 --- !u!23 &813235661
 MeshRenderer:
@@ -506,8 +611,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29b078ee8b06d194aaab64c543458a4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpawnAuthoring
-  Prefab: {fileID: 8404245804384635011, guid: fa0be41b3ce4a254cb42844e124faf85, type: 3}
-  MaxCount: 1000
+  Prefab: {fileID: 8230531957230866194, guid: a58e6e6cba057d146b17a7656d046127, type: 3}
+  MaxCount: 25000
   SingleSpawnCount: {x: 8000, y: 10000}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
@@ -521,8 +626,8 @@ Transform:
   m_GameObject: {fileID: 1570239326}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 16, z: -0}
-  m_LocalScale: {x: 32, y: 32, z: 32}
+  m_LocalPosition: {x: -25.2, y: 3.9916, z: -0}
+  m_LocalScale: {x: 15.248, y: 7.984, z: 32}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -539,6 +644,7 @@ GameObject:
   - component: {fileID: 1780083967}
   - component: {fileID: 1780083966}
   - component: {fileID: 1780083965}
+  - component: {fileID: 1780083969}
   m_Layer: 0
   m_Name: Settings
   m_TagString: Untagged
@@ -570,11 +676,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71246454091084843843a64c3bd2582b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpacialMapSettingsAuthoring
-  Position: {x: -33.577377, y: -13.788531, z: -31.188772}
-  CellWidth: 2
+  Position: {x: -33.577377, y: 0, z: -16.166729}
+  CellWidth: 1
   GridSize:
-    x: 32
-    y: 32
+    x: 64
+    y: 8
     z: 32
   RandomSeed: 12345
   ShouldDrawCells: 0
@@ -595,19 +701,24 @@ MonoBehaviour:
     DistanceRange:
       x: 0
       y: 1000
-    MaxEntityCount: 1000
+    MaxEntityCount: 50000
     MaxDynamicsInCells: 4
-    MaxTriggersInCells: 4
-    MaxStaticInCells: 1
+    MaxTriggersInCells: 0
+    MaxStaticInCells: 0
     MaxCollisionsPerEntity: 8
     MaxCollisionsPerEntityX2: 8
     MaxCollisionsPerEntityX4: 4
-    MaxCellPerEntity: 8
+    MaxCellPerEntity: 4
     MaxCellPerEntityX2: 8
     MaxCellPerEntityX4: 8
     MaxPairPerEntity: 16
     MaxPairPerEntityX2: 16
     MaxPairPerEntityX4: 8
+  CollisionCheckSettings:
+    CheckDynamicVsStatic: 0
+    CheckDynamicVsDynamic: 1
+    CheckTriggerVsDynamic: 0
+    CheckTriggerVsStatic: 0
 --- !u!4 &1780083968
 Transform:
   m_ObjectHideFlags: 0
@@ -623,6 +734,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1780083969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780083964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22e80e131b44a0740aafa59366f1d5b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.BodiesCountAuthoring
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -630,5 +753,6 @@ SceneRoots:
   - {fileID: 813235663}
   - {fileID: 363044243}
   - {fileID: 1570239330}
+  - {fileID: 321210782}
   - {fileID: 1332093740}
   - {fileID: 1780083968}

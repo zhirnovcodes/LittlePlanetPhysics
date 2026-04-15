@@ -175,19 +175,24 @@ MonoBehaviour:
     DistanceRange:
       x: 0
       y: 100
-    MaxEntityCount: 100000
-    MaxDynamicsInCells: 2
+    MaxEntityCount: 50000
+    MaxDynamicsInCells: 4
     MaxTriggersInCells: 0
-    MaxStaticInCells: 1
-    MaxCollisionsPerEntity: 2
-    MaxCollisionsPerEntityX2: 8
+    MaxStaticInCells: 0
+    MaxCollisionsPerEntity: 4
+    MaxCollisionsPerEntityX2: 4
     MaxCollisionsPerEntityX4: 4
     MaxCellPerEntity: 2
     MaxCellPerEntityX2: 16
     MaxCellPerEntityX4: 8
-    MaxPairPerEntity: 4
+    MaxPairPerEntity: 8
     MaxPairPerEntityX2: 16
     MaxPairPerEntityX4: 8
+  CollisionCheckSettings:
+    CheckDynamicVsStatic: 0
+    CheckDynamicVsDynamic: 1
+    CheckTriggerVsDynamic: 0
+    CheckTriggerVsStatic: 0
 --- !u!4 &52610922
 Transform:
   m_ObjectHideFlags: 0
@@ -272,6 +277,7 @@ GameObject:
   - component: {fileID: 1087947026}
   - component: {fileID: 1087947029}
   - component: {fileID: 1087947028}
+  - component: {fileID: 1087947030}
   m_Layer: 0
   m_Name: Spawn
   m_TagString: Untagged
@@ -292,7 +298,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpawnAuthoring
   Prefab: {fileID: 7085168711787417659, guid: 6a1a7efaf7eb86340b7d33b82eca4737, type: 3}
-  MaxCount: 50000
+  MaxCount: 40000
   SingleSpawnCount: {x: 8000, y: 10000}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
@@ -369,6 +375,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1087947025}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1087947030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087947025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22e80e131b44a0740aafa59366f1d5b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.BodiesCountAuthoring
 --- !u!1 &1883098242
 GameObject:
   m_ObjectHideFlags: 0
@@ -403,7 +421,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 0
   PlaneY: 0
-  SphereRadius: 10
   Bounciness: 0.5
   Hardness: 1
 --- !u!114 &1883098244
@@ -422,7 +439,6 @@ MonoBehaviour:
   SurfaceGravity: 9.81
   Radius: 10
   IsUp: 0
-  SurfaceY: 0
   Strength: 9.81
 --- !u!23 &1883098245
 MeshRenderer:
@@ -532,7 +548,6 @@ MonoBehaviour:
   SurfaceGravity: 9.81
   Radius: 25
   IsUp: 0
-  SurfaceY: 0
   Strength: 9.81
 --- !u!23 &1920653450
 MeshRenderer:
@@ -620,7 +635,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 1
   PlaneY: 0
-  SphereRadius: 25
   Bounciness: 0
   Hardness: 1
 --- !u!1660057539 &9223372036854775807

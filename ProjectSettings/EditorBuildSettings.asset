@@ -6,7 +6,16 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/Scenes/Facet.unity
+    guid: 62773bbe1eda0444f9908d61561cbae1
+  - enabled: 1
+    path: Assets/Scenes/Magic.unity
+    guid: 2f6c92ee992435f42b7690c9764368c7
+  - enabled: 1
+    path: Assets/Scenes/PlaneScene.unity
+    guid: fc63bf66b99f8c74fb7e257c4150f711
+  - enabled: 1
+    path: Assets/Scenes/SpawnScene.unity
+    guid: 43a24c2ba16a06d4e8b47da502477245
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

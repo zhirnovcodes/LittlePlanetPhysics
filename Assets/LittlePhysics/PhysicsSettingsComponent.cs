@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -24,13 +25,13 @@ namespace LittlePhysics
         public int MaxPairPerEntity;
         public int MaxPairPerEntityX2;
         public int MaxPairPerEntityX4;
-
     }
 
     public struct PhysicsSettingsBlobAsset
     {
         public int MaxEntitiesCount;
         public LodPhysicsData LodData;
+        public BlobArray<int> LayersMaps;
 
         public int GetSumEntitiesXCells() => LodData.MaxDynamicsInCells * LodData.MaxCellPerEntity;
         public int GetSumEntitiesXCollisions() => LodData.MaxEntityCount * LodData.MaxCollisionsPerEntity;
@@ -40,5 +41,11 @@ namespace LittlePhysics
     public struct PhysicsSettingsComponent : IComponentData
     {
         public BlobAssetReference<PhysicsSettingsBlobAsset> BlobRef;
+    }
+
+    public struct PhysicsSettingsInitComponent : IComponentData
+    {
+        public int MaxEntitiesCount;
+        public LodPhysicsData LodData;
     }
 }

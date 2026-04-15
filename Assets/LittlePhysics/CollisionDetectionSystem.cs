@@ -99,6 +99,7 @@ namespace LittlePhysics
                     BodiesList = physicsSingleton.BodiesList,
                     BodiesCount = physicsSingleton.BodiesCount,
                     PhysicsVelocities = physicsSingleton.PhysicsVelocities,
+                    PhysicsSettings = physicsSingleton.Settings,
                 }.Schedule(physicsSingleton.BodiesList.Length, 32, clearJob);
             }
 
@@ -113,6 +114,7 @@ namespace LittlePhysics
                 PairMap = Pairs,
                 CollisionsMap = Collisions,
                 PhysicsVelocities = physicsSingleton.PhysicsVelocities,
+                PhysicsSettings = physicsSingleton.Settings,
             }.Schedule(totalCells, 16, afterSurfaceJob);
 
             state.Dependency = pairsCheckJob;
@@ -140,6 +142,7 @@ namespace LittlePhysics
             [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
             [ReadOnly] public NativeReference<uint> BodiesCount;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+            public PhysicsSettingsComponent PhysicsSettings;
 
             public void Execute(int index)
             {
@@ -150,6 +153,11 @@ namespace LittlePhysics
 
                 var body = BodiesList[index];
                 if (body.BodyType != BodyType.Dynamic)
+                {
+                    return;
+                }
+
+                if (!PhysicsSettings.IsColliding(body.Layer, SurfaceBody.Layer))
                 {
                     return;
                 }
@@ -198,6 +206,7 @@ namespace LittlePhysics
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<uint> PairMap;
             [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
             [ReadOnly] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+            [ReadOnly] public PhysicsSettingsComponent PhysicsSettings;
 
             public unsafe void Execute(int cellIndex)
             {
@@ -272,6 +281,11 @@ namespace LittlePhysics
                     return;
                 }
 
+                if (!PhysicsSettings.IsColliding(bodyA.Layer, bodyB.Layer))
+                {
+                    return;
+                }
+
                 if (PairMap.TryAdd(lo, hi) == false)
                 {
                     return;
@@ -314,6 +328,11 @@ namespace LittlePhysics
                 var nonTrigger = BodiesList[(int)nonTriggerIndex];
 
                 if (trigger.Main == nonTrigger.Main)
+                {
+                    return;
+                }
+
+                if (!PhysicsSettings.IsColliding(trigger.Layer, nonTrigger.Layer))
                 {
                     return;
                 }

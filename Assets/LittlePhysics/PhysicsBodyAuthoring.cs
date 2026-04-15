@@ -36,7 +36,8 @@ namespace LittlePhysics
                     Bounciness = authoring.Bounciness,
                     Friction = authoring.Friction,
                     Hardness = authoring.Hardness,
-                    Main = main
+                    Main = main,
+                    Layer = authoring.gameObject.layer,
                 });
 
                 AddComponent(entity, new PhysicsBodyUpdateComponent

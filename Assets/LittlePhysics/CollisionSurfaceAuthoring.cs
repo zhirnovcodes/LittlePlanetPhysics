@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using UnityEngine;
 
 namespace LittlePhysics
@@ -33,6 +33,7 @@ namespace LittlePhysics
                     },
                     Bounciness = authoring.Bounciness,
                     Hardness = authoring.Hardness,
+                    Layer = authoring.gameObject.layer,
                 });
             }
         }

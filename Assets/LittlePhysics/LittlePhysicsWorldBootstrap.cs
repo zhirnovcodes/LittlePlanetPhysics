@@ -9,12 +9,15 @@ namespace LittlePhysics
     {
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<PhysicsSettingsComponent>();
+            state.RequireForUpdate<PhysicsSettingsInitComponent>();
             state.RequireForUpdate<SpacialMapSettingsComponent>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
+            if (!WaitForCreationSettings(ref state))
+                return;
+
             if (!WaitForImportSystem(ref state))
                 return;
 
@@ -27,6 +30,56 @@ namespace LittlePhysics
             CreateSingleton(ref state);
 
             state.Enabled = false;
+        }
+
+        private bool WaitForCreationSettings(ref SystemState state)
+        {
+            if (SystemAPI.HasSingleton<PhysicsSettingsComponent>())
+                return true;
+
+            CreatePhysicsSettings(ref state);
+            return false;
+        }
+
+        private void CreatePhysicsSettings(ref SystemState state)
+        {
+            var settingsData = SystemAPI.GetSingleton<PhysicsSettingsInitComponent>();
+
+            var layersMapsArray = new NativeArray<int>(32, Allocator.Temp);
+            for (int layer = 0; layer < 32; layer++)
+            {
+                int layerMask = 0;
+                for (int otherLayer = 0; otherLayer < 32; otherLayer++)
+                {
+                    if (!Physics.GetIgnoreLayerCollision(layer, otherLayer))
+                        layerMask |= (1 << otherLayer);
+                }
+                layersMapsArray[layer] = layerMask;
+            }
+
+            var builder = new BlobBuilder(Allocator.Temp);
+            ref var root = ref builder.ConstructRoot<PhysicsSettingsBlobAsset>();
+            root.MaxEntitiesCount = settingsData.MaxEntitiesCount;
+            root.LodData = settingsData.LodData;
+
+            var layersMapsBuilder = builder.Allocate(ref root.LayersMaps, 32);
+            for (int i = 0; i < 32; i++)
+            { 
+                layersMapsBuilder[i] = layersMapsArray[i]; 
+            }
+
+            layersMapsArray.Dispose();
+
+            var blobRef = builder.CreateBlobAssetReference<PhysicsSettingsBlobAsset>(Allocator.Persistent);
+            builder.Dispose();
+
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var entity = ecb.CreateEntity();
+            ecb.AddComponent(entity, new PhysicsSettingsComponent { BlobRef = blobRef });
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
+
+            Debug.Log("[LittlePhysicsBootstrap] CreatePhysicsSettings: PhysicsSettingsComponent created");
         }
 
         private static bool WaitForImportSystem(ref SystemState state)
@@ -123,7 +176,8 @@ namespace LittlePhysics
                 {
                     Collisions = detectionSystem.Collisions
                 },
-                SpacialMap = spacialMap
+                SpacialMap = spacialMap,
+                Settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>(),
             });
             ecb.Playback(state.EntityManager);
             ecb.Dispose();

@@ -16,6 +16,7 @@ namespace LittlePhysics
         public Sphere Sphere;
         public float Bounciness;
         public float Hardness;
+        public int Layer;
 
         public PhysicsBodyData ToBodyData()
         {
@@ -31,6 +32,7 @@ namespace LittlePhysics
                 Scale = SurfaceType == SurfaceType.SimplePlane ? 0f : Sphere.Scale,
                 Bounciness = Bounciness,
                 Hardness = Hardness,
+                Layer = Layer,
             };
         }
     }

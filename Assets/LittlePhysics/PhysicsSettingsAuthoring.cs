@@ -1,4 +1,3 @@
-using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -13,17 +12,12 @@ namespace LittlePhysics
         {
             public override void Bake(PhysicsSettingsAuthoring authoring)
             {
-                var builder = new BlobBuilder(Allocator.Temp);
-                ref var root = ref builder.ConstructRoot<PhysicsSettingsBlobAsset>();
-                root.MaxEntitiesCount = authoring.MaxEntitiesCount;
-                root.LodData = authoring.LodData;
-
-                var blobRef = builder.CreateBlobAssetReference<PhysicsSettingsBlobAsset>(Allocator.Persistent);
-                builder.Dispose();
-
                 var entity = GetEntity(TransformUsageFlags.None);
-                AddBlobAsset(ref blobRef, out _);
-                AddComponent(entity, new PhysicsSettingsComponent { BlobRef = blobRef });
+                AddComponent(entity, new PhysicsSettingsInitComponent
+                {
+                    MaxEntitiesCount = authoring.MaxEntitiesCount,
+                    LodData = authoring.LodData,
+                });
             }
         }
     }

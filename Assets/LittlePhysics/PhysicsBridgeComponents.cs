@@ -89,6 +89,7 @@ namespace LittlePhysics
         public float Hardness;
         public bool ShouldUpdateMap;
         public int LodIndex;
+        public int Layer;
 
         public DynamicPhysicsData ToDynamicData() => new DynamicPhysicsData
         {
@@ -135,6 +136,7 @@ namespace LittlePhysics
         public CollisionMapSingleton CollisionMap;
         public CollisionsSingleton Collisions;
         public SpacialMap SpacialMap;
+        public PhysicsSettingsComponent Settings;
         public JobHandle PhysicsJobHandle;
     }
 }

@@ -23,7 +23,13 @@ namespace LittlePhysics
 
         public BodyTypes Types;
 
-        public static CastFilter Default => new CastFilter { Types = BodyTypes.Dynamic };
+        /// <summary>
+        /// Source layer for layer-based collision filtering. -1 means all layers (no filtering).
+        /// </summary>
+        public int Layer;
+
+        public static CastFilter Default => new CastFilter { Types = BodyTypes.Dynamic, Layer = -1 };
+        public static CastFilter All => new CastFilter { Types = BodyTypes.Dynamic | BodyTypes.Static | BodyTypes.Trigger, Layer = -1 };
     }
 
     public static partial class PhysicsSingletonExtensions
@@ -31,6 +37,8 @@ namespace LittlePhysics
         /// <summary>
         /// Performs a line cast and returns the first (closest) hit against bodies matching the filter.
         /// Each cell crossed by the line is queried for dynamic, then static, then trigger bodies.
+        /// When <see cref="CastFilter.Layer"/> >= 0, only bodies whose layer collides with the filter
+        /// layer (as defined by <see cref="PhysicsSingleton.Settings"/>) are considered.
         /// </summary>
         public static bool LineCastFirst(
             this PhysicsSingleton physics,
@@ -59,6 +67,8 @@ namespace LittlePhysics
                     while (dynMap.TraverseCell(ref dynIt, out uint bodyIndex))
                     {
                         var body = physics.BodiesList[(int)bodyIndex];
+                        if (filter.Layer >= 0 && !physics.Settings.IsColliding(filter.Layer, body.Layer))
+                            continue;
                         Entity dynEntity = body.Main;
                         if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
@@ -75,7 +85,7 @@ namespace LittlePhysics
 
                 if (shouldFindStatic)
                 {
-                    CheckStatic(ref physics, start, ref result, ref closestDistSq, ref found, line, cellId);
+                    CheckStatic(ref physics, start, ref result, ref closestDistSq, ref found, line, cellId, filter);
                 }
 
                 if (shouldFindTrigger)
@@ -85,6 +95,8 @@ namespace LittlePhysics
                     while (trigMap.TraverseCell(ref trigIt, out uint bodyIndex))
                     {
                         var body = physics.BodiesList[(int)bodyIndex];
+                        if (filter.Layer >= 0 && !physics.Settings.IsColliding(filter.Layer, body.Layer))
+                            continue;
                         Entity trigEntity = body.Main;
                         if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
@@ -103,13 +115,15 @@ namespace LittlePhysics
             return found;
         }
 
-        private static void CheckStatic(ref PhysicsSingleton physics, float3 start, ref LineCastResult result, ref float closestDistSq, ref bool found, Line line, int cellId)
+        private static void CheckStatic(ref PhysicsSingleton physics, float3 start, ref LineCastResult result, ref float closestDistSq, ref bool found, Line line, int cellId, CastFilter filter)
         {
             var staticMap = physics.CollisionMap.StaticCollisionMap;
             var it = staticMap.GetCellIterator((uint)cellId);
             while (staticMap.TraverseCell(ref it, out uint bodyIndex))
             {
                 var body = physics.BodiesList[(int)bodyIndex];
+                if (filter.Layer >= 0 && !physics.Settings.IsColliding(filter.Layer, body.Layer))
+                    continue;
                 Entity staticEntity = body.Main;
 
                 if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact) == false)
@@ -131,6 +145,8 @@ namespace LittlePhysics
         /// Performs a line cast and fills <paramref name="results"/> with all hits against bodies
         /// matching the filter. Returns the number of hits written.
         /// Each cell crossed by the line is queried for dynamic, then static, then trigger bodies.
+        /// When <see cref="CastFilter.Layer"/> >= 0, only bodies whose layer collides with the filter
+        /// layer (as defined by <see cref="PhysicsSingleton.Settings"/>) are considered.
         /// </summary>
         public static int LineCast(
             this PhysicsSingleton physics,
@@ -153,6 +169,8 @@ namespace LittlePhysics
                     while (count < results.Length && dynMap.TraverseCell(ref dynIt, out uint bodyIndex))
                     {
                         var body = physics.BodiesList[(int)bodyIndex];
+                        if (filter.Layer >= 0 && !physics.Settings.IsColliding(filter.Layer, body.Layer))
+                            continue;
                         Entity dynEntity = body.Main;
                         if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
@@ -169,6 +187,8 @@ namespace LittlePhysics
                     while (count < results.Length && staticMap.TraverseCell(ref staticIt, out uint bodyIndex))
                     {
                         var body = physics.BodiesList[(int)bodyIndex];
+                        if (filter.Layer >= 0 && !physics.Settings.IsColliding(filter.Layer, body.Layer))
+                            continue;
                         Entity staticEntity = body.Main;
                         if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {
@@ -184,6 +204,8 @@ namespace LittlePhysics
                     while (count < results.Length && trigMap.TraverseCell(ref trigIt, out uint bodyIndex))
                     {
                         var body = physics.BodiesList[(int)bodyIndex];
+                        if (filter.Layer >= 0 && !physics.Settings.IsColliding(filter.Layer, body.Layer))
+                            continue;
                         Entity trigEntity = body.Main;
                         if (CollisionMethods.IsLineCollidingBody(line, body, out float3 contact))
                         {

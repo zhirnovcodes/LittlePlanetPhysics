@@ -41,6 +41,7 @@ namespace LittlePhysics
         public float Friction;
         public float Hardness;
         public Entity Main;
+        public int Layer;
 
         public PhysicsBodyData ToBodyData(LocalToWorld localToWorld, int lodIndex, bool shouldUpdateMap = true) => new PhysicsBodyData
         {
@@ -57,6 +58,7 @@ namespace LittlePhysics
             Friction = Friction,
             Hardness = Hardness,
             ShouldUpdateMap = shouldUpdateMap,
+            Layer = Layer,
         };
     }
 }

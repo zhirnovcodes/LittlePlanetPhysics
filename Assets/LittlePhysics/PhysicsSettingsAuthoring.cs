@@ -7,6 +7,13 @@ namespace LittlePhysics
     {
         public int MaxEntitiesCount = 1000000;
         public LodPhysicsData LodData;
+        public CollisionCheckSettings CollisionCheckSettings = new CollisionCheckSettings
+        {
+            CheckDynamicVsStatic = true,
+            CheckDynamicVsDynamic = true,
+            CheckTriggerVsDynamic = true,
+            CheckTriggerVsStatic = true,
+        };
 
         private sealed class Baker : Baker<PhysicsSettingsAuthoring>
         {
@@ -17,6 +24,7 @@ namespace LittlePhysics
                 {
                     MaxEntitiesCount = authoring.MaxEntitiesCount,
                     LodData = authoring.LodData,
+                    CheckSettings = authoring.CollisionCheckSettings,
                 });
             }
         }

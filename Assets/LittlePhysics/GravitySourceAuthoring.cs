@@ -14,7 +14,6 @@ namespace LittlePhysics
 
         [Header("Directional")]
         public bool IsUp = false;
-        public float SurfaceY = 0f;
         public float Strength = 9.81f;
 
         private sealed class Baker : Baker<GravitySourceAuthoring>
@@ -38,7 +37,7 @@ namespace LittlePhysics
                         AddComponent(entity, new DirectionalGravitySourceComponent
                         {
                             IsUp = authoring.IsUp,
-                            SurfaceY = authoring.SurfaceY,
+                            SurfaceY = authoring.transform.localPosition.y,
                             Strength = authoring.Strength
                         });
                         break;

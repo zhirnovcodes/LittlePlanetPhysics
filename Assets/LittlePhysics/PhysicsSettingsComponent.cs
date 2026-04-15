@@ -38,14 +38,25 @@ namespace LittlePhysics
         public int GetSumEntitiesXPairs() => LodData.MaxEntityCount * LodData.MaxPairPerEntity;
     }
 
+    [System.Serializable]
+    public struct CollisionCheckSettings
+    {
+        public bool CheckDynamicVsStatic;
+        public bool CheckDynamicVsDynamic;
+        public bool CheckTriggerVsDynamic;
+        public bool CheckTriggerVsStatic;
+    }
+
     public struct PhysicsSettingsComponent : IComponentData
     {
         public BlobAssetReference<PhysicsSettingsBlobAsset> BlobRef;
+        public CollisionCheckSettings CheckSettings;
     }
 
     public struct PhysicsSettingsInitComponent : IComponentData
     {
         public int MaxEntitiesCount;
         public LodPhysicsData LodData;
+        public CollisionCheckSettings CheckSettings;
     }
 }

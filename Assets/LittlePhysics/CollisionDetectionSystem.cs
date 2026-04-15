@@ -210,10 +210,25 @@ namespace LittlePhysics
 
             public unsafe void Execute(int cellIndex)
             {
-                CheckDynamicVsStatic((uint)cellIndex);
-                CheckDynamicVsDynamic((uint)cellIndex);
-                CheckTriggerVsDynamic((uint)cellIndex);
-                CheckTriggerVsStatic((uint)cellIndex);
+                if (PhysicsSettings.CheckSettings.CheckDynamicVsStatic)
+                {
+                    CheckDynamicVsStatic((uint)cellIndex);
+                }
+
+                if (PhysicsSettings.CheckSettings.CheckDynamicVsDynamic)
+                {
+                    CheckDynamicVsDynamic((uint)cellIndex);
+                }
+
+                if (PhysicsSettings.CheckSettings.CheckTriggerVsDynamic)
+                {
+                    CheckTriggerVsDynamic((uint)cellIndex);
+                }
+
+                if (PhysicsSettings.CheckSettings.CheckTriggerVsStatic)
+                {
+                    CheckTriggerVsStatic((uint)cellIndex);
+                }
             }
 
             private unsafe void CheckDynamicVsDynamic(uint cellKey)

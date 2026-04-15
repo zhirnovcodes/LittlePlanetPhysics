@@ -253,12 +253,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71246454091084843843a64c3bd2582b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpacialMapSettingsAuthoring
-  Position: {x: -33.577377, y: -13.788531, z: -31.188772}
-  CellWidth: 2
+  Position: {x: -25, y: -28.211784, z: -25}
+  CellWidth: 1
   GridSize:
-    x: 32
-    y: 32
-    z: 32
+    x: 50
+    y: 8
+    z: 50
   RandomSeed: 12345
   ShouldDrawCells: 0
 --- !u!114 &229986543
@@ -279,18 +279,23 @@ MonoBehaviour:
       x: 0
       y: 1000
     MaxEntityCount: 100000
-    MaxDynamicsInCells: 4
-    MaxTriggersInCells: 4
+    MaxDynamicsInCells: 8
+    MaxTriggersInCells: 0
     MaxStaticInCells: 1
-    MaxCollisionsPerEntity: 8
+    MaxCollisionsPerEntity: 16
     MaxCollisionsPerEntityX2: 8
     MaxCollisionsPerEntityX4: 4
-    MaxCellPerEntity: 8
+    MaxCellPerEntity: 4
     MaxCellPerEntityX2: 8
     MaxCellPerEntityX4: 8
-    MaxPairPerEntity: 16
+    MaxPairPerEntity: 32
     MaxPairPerEntityX2: 16
     MaxPairPerEntityX4: 8
+  CollisionCheckSettings:
+    CheckDynamicVsStatic: 0
+    CheckDynamicVsDynamic: 1
+    CheckTriggerVsDynamic: 1
+    CheckTriggerVsStatic: 0
 --- !u!4 &229986544
 Transform:
   m_ObjectHideFlags: 0
@@ -394,8 +399,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29b078ee8b06d194aaab64c543458a4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpawnAuthoring
-  Prefab: {fileID: 7824282177320228943, guid: f1ce7d53cd327b348ac09a57a09a7871, type: 3}
-  MaxCount: 50000
+  Prefab: {fileID: 2540581496615364108, guid: 6aab296c21aa78d4391658b937507a3d, type: 3}
+  MaxCount: 25000
   SingleSpawnCount: {x: 30, y: 50}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
@@ -409,8 +414,8 @@ Transform:
   m_GameObject: {fileID: 660482608}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 37.93, z: 0}
-  m_LocalScale: {x: 3.1, y: 3.1, z: 3.1}
+  m_LocalPosition: {x: 0.25, y: 22.561, z: -0.13}
+  m_LocalScale: {x: 2.3882728, y: 0.7245056, z: 2.5203156}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -467,7 +472,6 @@ MonoBehaviour:
   SurfaceGravity: 18
   Radius: 10
   IsUp: 0
-  SurfaceY: 0
   Strength: 9.81
 --- !u!23 &799092897
 MeshRenderer:
@@ -535,7 +539,7 @@ Transform:
   m_GameObject: {fileID: 799092894}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -7.66, z: 0}
+  m_LocalPosition: {x: 0, y: -28.58, z: 0}
   m_LocalScale: {x: 500, y: 500, z: 500}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -593,7 +597,6 @@ MonoBehaviour:
   SurfaceGravity: 2376.5
   Radius: 0.1
   IsUp: 0
-  SurfaceY: 0
   Strength: 9.81
 --- !u!23 &1834702072
 MeshRenderer:
@@ -602,7 +605,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1834702069}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1

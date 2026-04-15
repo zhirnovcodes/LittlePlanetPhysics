@@ -75,7 +75,11 @@ namespace LittlePhysics
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var entity = ecb.CreateEntity();
-            ecb.AddComponent(entity, new PhysicsSettingsComponent { BlobRef = blobRef });
+            ecb.AddComponent(entity, new PhysicsSettingsComponent
+            {
+                BlobRef = blobRef,
+                CheckSettings = settingsData.CheckSettings,
+            });
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
 

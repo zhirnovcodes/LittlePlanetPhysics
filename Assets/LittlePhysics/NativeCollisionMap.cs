@@ -21,15 +21,15 @@ namespace LittlePhysics
         [NativeDisableParallelForRestriction]
         private NativeArray<int> Counts;
 
-        private readonly int MapSize;
+        private readonly int3 MapSize;
         private readonly int EntitiesPerCell;
         private readonly int TotalCells;
 
-        public NativeCollisionMap(uint mapSize, uint entitiesPerCell, Allocator allocator)
+        public NativeCollisionMap(int3 mapSize, uint entitiesPerCell, Allocator allocator)
         {
-            MapSize = (int)mapSize;
+            MapSize = mapSize;
             EntitiesPerCell = (int)entitiesPerCell;
-            TotalCells = MapSize * MapSize * MapSize;
+            TotalCells = MapSize.x * MapSize.y * MapSize.z;
 
             Map = new NativeArray<uint>(TotalCells * EntitiesPerCell, allocator);
             Counts = new NativeArray<int>(TotalCells, allocator);
@@ -40,7 +40,7 @@ namespace LittlePhysics
         // Convert 3D index to linear index
         public int GetCellIndex(uint3 cellIndex)
         {
-            return (int)(cellIndex.x + cellIndex.y * MapSize + cellIndex.z * MapSize * MapSize);
+            return (int)(cellIndex.x + cellIndex.y * MapSize.x + cellIndex.z * MapSize.x * MapSize.y);
         }
 
         public bool TryAdd(uint cellIndex, uint value)

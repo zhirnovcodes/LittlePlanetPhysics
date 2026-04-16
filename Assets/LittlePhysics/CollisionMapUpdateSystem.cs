@@ -81,12 +81,11 @@ namespace LittlePhysics
 
         private void InitCollections(ref PhysicsSettingsBlobAsset blob, int maxBodiesForRandoms, int3 gridSize, uint seed)
         {
-            uint mapSize = (uint)gridSize.x;
             ref LodPhysicsData lod = ref blob.LodData;
 
-            DynamicCollisionMap = new NativeCollisionMap(mapSize, (uint)lod.MaxDynamicsInCells, Allocator.Persistent);
-            TriggersCollisionMap = new NativeCollisionMap(mapSize, (uint)lod.MaxTriggersInCells, Allocator.Persistent);
-            StaticCollisionMap = new NativeCollisionMap(mapSize, (uint)lod.MaxStaticInCells, Allocator.Persistent);
+            DynamicCollisionMap = new NativeCollisionMap(gridSize, (uint)lod.MaxDynamicsInCells, Allocator.Persistent);
+            TriggersCollisionMap = new NativeCollisionMap(gridSize, (uint)lod.MaxTriggersInCells, Allocator.Persistent);
+            StaticCollisionMap = new NativeCollisionMap(gridSize, (uint)lod.MaxStaticInCells, Allocator.Persistent);
 
             Randoms = new NativeArray<Random>(maxBodiesForRandoms, Allocator.Persistent);
             for (int i = 0; i < maxBodiesForRandoms; i++)

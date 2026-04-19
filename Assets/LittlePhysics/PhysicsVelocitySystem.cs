@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup))]
     [UpdateAfter(typeof(CollisionDetectionSystem))]
     public partial struct PhysicsVelocitySystem : ISystem
     {

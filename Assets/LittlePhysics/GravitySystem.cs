@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup))]
     [UpdateBefore(typeof(PhysicsVelocitySystem))]
     public partial struct GravitySystem : ISystem
     {
@@ -30,8 +30,7 @@ namespace LittlePhysics
 
             var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
             int bodyCount = settings.BlobRef.Value.LodData.MaxEntityCount;
-            float deltaTime = SystemAPI.Time.DeltaTime;
-
+            
             var dep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
 
             if (SystemAPI.HasSingleton<SphericalGravitySourceComponent>())
@@ -42,7 +41,6 @@ namespace LittlePhysics
                     BodiesList = singleton.BodiesList,
                     PhysicsVelocities = singleton.PhysicsVelocities,
                     BodiesCount = singleton.BodiesCount,
-                    DeltaTime = deltaTime,
                 }.Schedule(bodyCount, 32, dep);
             }
 
@@ -54,7 +52,6 @@ namespace LittlePhysics
                     BodiesList = singleton.BodiesList,
                     PhysicsVelocities = singleton.PhysicsVelocities,
                     BodiesCount = singleton.BodiesCount,
-                    DeltaTime = deltaTime,
                 }.Schedule(bodyCount, 32, dep);
             }
 
@@ -70,7 +67,6 @@ namespace LittlePhysics
             [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             [ReadOnly] public NativeReference<uint> BodiesCount;
-            public float DeltaTime;
 
             public void Execute(int index)
             {
@@ -97,7 +93,7 @@ namespace LittlePhysics
                 float gravityMagnitude = Source.SurfaceGravity * (Source.Radius * Source.Radius) / (distance * distance);
 
                 var velocity = PhysicsVelocities[index];
-                velocity.Linear += direction * gravityMagnitude * DeltaTime;
+                velocity.Linear += direction * gravityMagnitude;
                 PhysicsVelocities[index] = velocity;
             }
         }
@@ -109,7 +105,6 @@ namespace LittlePhysics
             [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             [ReadOnly] public NativeReference<uint> BodiesCount;
-            public float DeltaTime;
 
             public void Execute(int index)
             {
@@ -141,7 +136,7 @@ namespace LittlePhysics
                 float3 direction = Source.IsUp ? new float3(0f, 1f, 0f) : new float3(0f, -1f, 0f);
 
                 var velocity = PhysicsVelocities[index];
-                velocity.Linear += direction * Source.Strength * DeltaTime;
+                velocity.Linear += direction * Source.Strength;
                 PhysicsVelocities[index] = velocity;
             }
         }

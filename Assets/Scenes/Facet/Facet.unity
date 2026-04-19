@@ -470,7 +470,7 @@ MonoBehaviour:
   SurfaceGravity: 9.8
   Radius: 10
   IsUp: 0
-  Strength: 9.8
+  Strength: 1
 --- !u!23 &799092897
 MeshRenderer:
   m_ObjectHideFlags: 0

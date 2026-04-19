@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup), OrderFirst = true)]
     public partial struct CollisionMapUpdateSystem : ISystem
     {
         [NoAlias] public NativeCollisionMap DynamicCollisionMap;

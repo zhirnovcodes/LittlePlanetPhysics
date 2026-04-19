@@ -45,7 +45,7 @@ namespace LittlePhysics
     }
 
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup))]
     [UpdateAfter(typeof(CollisionMapUpdateSystem))]
     public partial struct CollisionDetectionSystem : ISystem
     {

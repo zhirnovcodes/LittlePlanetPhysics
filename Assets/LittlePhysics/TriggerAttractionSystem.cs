@@ -41,7 +41,6 @@ namespace LittlePhysics
                 PhysicsVelocities = singleton.PhysicsVelocities,
                 BodiesCount = singleton.BodiesCount,
                 Power = attraction.Power,
-                DeltaTime = SystemAPI.Time.DeltaTime,
             }.Schedule(bodyCount, 32, combinedDep);
 
             singleton.PhysicsJobHandle = state.Dependency;
@@ -56,7 +55,6 @@ namespace LittlePhysics
             [ReadOnly] public NativeReference<uint> BodiesCount;
             [NativeDisableParallelForRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             public float Power;
-            public float DeltaTime;
 
             public void Execute(int index)
             {

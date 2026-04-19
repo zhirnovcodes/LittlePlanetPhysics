@@ -52,9 +52,9 @@ MonoBehaviour:
   LocalPosition: {x: 0, y: 0, z: 0}
   Scale: 1
   Mass: 1
-  Bounciness: 0.2
+  Bounciness: 0.1
   Friction: 1
-  Hardness: 1
+  Hardness: 0.8
   TriggerUpdateInterval: 1
   StartVeclocity: {x: 0, y: -10, z: 0}
   Main: {fileID: 0}

@@ -306,8 +306,7 @@ namespace LittlePhysics
                     return;
                 }
 
-                if (CollisionsMap.CanAdd((uint)bodyIndexA) == false
-                    && CollisionsMap.CanAdd((uint)bodyIndexB) == false)
+                if (CollisionsMap.CanAdd((uint)bodyIndexA) == false)
                 {
                     return;
                 }
@@ -360,8 +359,7 @@ namespace LittlePhysics
                     return;
                 }
 
-                if (CollisionsMap.CanAdd((uint)triggerIndex) == false
-                    && CollisionsMap.CanAdd((uint)nonTriggerIndex) == false)
+                if (CollisionsMap.CanAdd((uint)triggerIndex) == false)
                 {
                     return;
                 }

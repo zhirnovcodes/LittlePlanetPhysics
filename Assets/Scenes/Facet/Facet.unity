@@ -280,15 +280,15 @@ MonoBehaviour:
     MaxDynamicsInCells: 16
     MaxTriggersInCells: 0
     MaxStaticInCells: 1
-    MaxCollisionsPerEntity: 16
-    MaxCollisionsPerEntityX2: 8
-    MaxCollisionsPerEntityX4: 4
     MaxCellPerEntity: 4
     MaxCellPerEntityX2: 8
     MaxCellPerEntityX4: 8
     MaxPairPerEntity: 32
     MaxPairPerEntityX2: 16
     MaxPairPerEntityX4: 8
+    MaxCollisionsPerEntity: 16
+    MaxCollisionsPerEntityX2: 8
+    MaxCollisionsPerEntityX4: 4
   CollisionCheckSettings:
     CheckDynamicVsStatic: 0
     CheckDynamicVsDynamic: 1
@@ -451,6 +451,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 0
+  Friction: 1
   PlaneY: 0
   Bounciness: 0.5
   Hardness: 1
@@ -576,6 +577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 2
+  Friction: 0
   PlaneY: 0
   Bounciness: 0
   Hardness: 1

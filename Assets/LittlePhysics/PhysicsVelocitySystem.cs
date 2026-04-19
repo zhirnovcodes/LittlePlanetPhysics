@@ -25,13 +25,17 @@ namespace LittlePhysics
                 return;
             if (!singleton.Collisions.Collisions.IsCreated)
                 return;
+            if (SystemAPI.TryGetSingleton<LittlePhysicsTimeComponent>(out var time) == false)
+            {
+                return;
+            }
 
             var combinedDep = JobHandle.CombineDependencies(state.Dependency, singleton.PhysicsJobHandle);
             var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
 
             int bodyCount = settings.BlobRef.Value.LodData.MaxEntityCount;
 
-            var deltaTime = SystemAPI.Time.DeltaTime;
+            var deltaTime = time.DeltaTime;
 
             var collisionDep = new ApplyCollisionVelocitiesJob
             {
@@ -46,7 +50,7 @@ namespace LittlePhysics
             {
                 BodiesList = singleton.BodiesList,
                 PhysicsVelocities = singleton.PhysicsVelocities,
-                DeltaTime = SystemAPI.Time.DeltaTime,
+                DeltaTime = deltaTime,
                 BodiesCount = singleton.BodiesCount,
             }.Schedule(bodyCount, 32, collisionDep);
 

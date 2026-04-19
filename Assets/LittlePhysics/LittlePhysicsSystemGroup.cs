@@ -1,25 +1,52 @@
 ﻿using Unity.Core;
 using Unity.Entities;
 
-[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-public partial class LittlePhysicsSystemGroup : ComponentSystemGroup
+namespace LittlePhysics
 {
-    public int N = 1; // 1, 2, or 4
-
-    protected override void OnUpdate()
+    // Singleton component to hold the sub-stepped time
+    public struct LittlePhysicsTimeComponent : IComponentData
     {
-        var originalTime = World.Time;
-        float alteredDt = originalTime.DeltaTime / N;
+        public int TimeScale;
+        public float DeltaTime;
+        public double ElapsedTime;
+    }
 
-        for (int i = 0; i < N; i++)
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    public partial class LittlePhysicsSystemGroup : ComponentSystemGroup
+    {
+        protected override void OnCreate()
         {
-            World.SetTime(new TimeData(
-                originalTime.ElapsedTime + alteredDt * i,
-                alteredDt
-            ));
-            base.OnUpdate();
+            base.OnCreate();
+            // Create the singleton entity once
+            var entity = EntityManager.CreateEntity();
+            EntityManager.AddComponentData(entity, new LittlePhysicsTimeComponent
+            {
+                TimeScale = 1
+            });
         }
 
-        World.SetTime(originalTime); // clean restore
+        protected override void OnUpdate()
+        {
+            var worldTime = World.Time;
+            var physicsTime = SystemAPI.GetSingleton<LittlePhysicsTimeComponent>();
+
+            float deltaTime = worldTime.DeltaTime;
+            double timeElapsed = physicsTime.ElapsedTime;
+            int timeScale = physicsTime.TimeScale;
+
+            for (int i = 0; i < timeScale; i++)
+            {
+                timeElapsed += deltaTime;
+
+                SystemAPI.SetSingleton(new LittlePhysicsTimeComponent
+                {
+                    ElapsedTime = timeElapsed,
+                    DeltaTime = deltaTime,
+                    TimeScale = timeScale
+                });
+
+                base.OnUpdate();
+            }
+        }
     }
 }

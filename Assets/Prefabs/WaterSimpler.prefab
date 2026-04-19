@@ -53,7 +53,7 @@ MonoBehaviour:
   Scale: 1
   Mass: 1
   Bounciness: 0.1
-  Friction: 1
+  Friction: 0
   Hardness: 0.8
   TriggerUpdateInterval: 1
   StartVeclocity: {x: 0, y: -10, z: 0}

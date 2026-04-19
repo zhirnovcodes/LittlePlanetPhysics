@@ -30,7 +30,12 @@ namespace LittlePhysics
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
-            var deltaTime = SystemAPI.Time.DeltaTime;
+            if (SystemAPI.TryGetSingleton<LittlePhysicsTimeComponent>(out var time) == false)
+            {
+                return;
+            }
+
+            var deltaTime = SystemAPI.Time.DeltaTime * time.TimeScale;
             var currentPhysicsBodyCount = physicsBodyQuery.CalculateEntityCount();
 
             if (SystemAPI.HasSingleton<BodiesCountComponent>())

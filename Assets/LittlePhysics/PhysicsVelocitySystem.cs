@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(LittlePhysicsSystemGroup))]
+    [UpdateInGroup(typeof(LittlePhysicsInternalSystemGroup))]
     [UpdateAfter(typeof(CollisionDetectionSystem))]
     public partial struct PhysicsVelocitySystem : ISystem
     {
@@ -37,85 +37,16 @@ namespace LittlePhysics
 
             var deltaTime = time.DeltaTime;
 
-            var collisionDep = new ApplyCollisionVelocitiesJob
-            {
-                CollisionsMap = singleton.Collisions.Collisions,
-                BodiesList = singleton.BodiesList,
-                PhysicsVelocities = singleton.PhysicsVelocities,
-                BodiesCount = singleton.BodiesCount,
-                DeltaTime = deltaTime
-            }.Schedule(bodyCount, 32, combinedDep);
-
             state.Dependency = new ApplyVelocitiesJob
             {
                 BodiesList = singleton.BodiesList,
                 PhysicsVelocities = singleton.PhysicsVelocities,
                 DeltaTime = deltaTime,
                 BodiesCount = singleton.BodiesCount,
-            }.Schedule(bodyCount, 32, collisionDep);
+            }.Schedule(bodyCount, 32, combinedDep);
 
             singleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(singleton);
-        }
-
-        [BurstCompile]
-        private struct ApplyCollisionVelocitiesJob : IJobParallelFor
-        {
-            [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsBodyData> BodiesList;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
-            [ReadOnly] public NativeReference<uint> BodiesCount;
-            public float DeltaTime;
-
-            public void Execute(int index)
-            {
-                if ((uint)index >= BodiesCount.Value)
-                    return;
-
-                uint row = (uint)index;
-
-                var body = BodiesList[index];
-                if (body.BodyType != BodyType.Dynamic)
-                    return;
-
-                var sumVelocity = PhysicsVelocities[index];
-
-                var iterator = CollisionsMap.GetSingleIterator(index);
-                while (CollisionsMap.Traverse(ref iterator, out var pair))
-                {
-                    var collision = pair.Item2;
-
-                    float3 impulse;
-                    float3 pushForce;
-                    if (row == collision.Body1)
-                    {
-                        impulse = collision.Impulse1;
-                        pushForce = collision.PushOutForce1;
-                    }
-                    else
-                    {
-                        impulse = collision.Impulse2;
-                        pushForce = collision.PushOutForce2;
-                    }
-
-                    CollisionForces.ImpulseToVelocity(
-                        body, impulse, collision.ContactPoint,
-                        out float3 linearFromImpulse, out float3 angularFromImpulse);
-
-                    var additionVelocity = new PhysicsVelocityData
-                    {
-                        Linear = linearFromImpulse,
-                        Angular = angularFromImpulse
-                    };
-
-                    body.Position += pushForce * DeltaTime * 10f;
-
-                    sumVelocity += additionVelocity;
-                }
-
-                PhysicsVelocities[index] = sumVelocity;
-                BodiesList[index] = body;
-            }
         }
 
         [BurstCompile]

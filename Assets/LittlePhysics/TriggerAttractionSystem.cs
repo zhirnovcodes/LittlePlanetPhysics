@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(LittlePhysicsUserSystemGroup))]
     [UpdateAfter(typeof(PhysicsVelocitySystem))]
     public partial struct TriggerAttractionSystem : ISystem
     {

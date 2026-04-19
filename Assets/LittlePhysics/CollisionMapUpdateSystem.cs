@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace LittlePhysics
 {
     [BurstCompile]
-    [UpdateInGroup(typeof(LittlePhysicsSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(LittlePhysicsInternalSystemGroup), OrderFirst = true)]
     public partial struct CollisionMapUpdateSystem : ISystem
     {
         [NoAlias] public NativeCollisionMap DynamicCollisionMap;
@@ -43,6 +43,11 @@ namespace LittlePhysics
                 return;
             }
 
+            if (!SystemAPI.TryGetSingleton<LittlePhysicsTimeComponent>(out var time))
+            {
+                return;
+            }
+
             if (!SystemAPI.HasSingleton<PhysicsSingleton>())
                 return;
 
@@ -61,6 +66,18 @@ namespace LittlePhysics
                 StaticCollisionMap = StaticCollisionMap
             }.Schedule(physicsHandle);
 
+            var maxCellPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntity;
+
+            switch (time.TimeScale)
+            {
+                case 2:
+                    maxCellPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntityX2;
+                    break;
+                case 4:
+                    maxCellPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntityX4;
+                    break;
+            }
+
             var addDynamicJob = new AddBodiesJob
             {
                 BodiesList = physicsSingleton.BodiesList,
@@ -70,7 +87,7 @@ namespace LittlePhysics
                 TriggersCollisionMap = TriggersCollisionMap,
                 StaticCollisionMap = StaticCollisionMap,
                 Randoms = Randoms,
-                MaxCellsPerEntity = physicsSettings.BlobRef.Value.LodData.MaxCellPerEntity,
+                MaxCellsPerEntity = maxCellPerEntity,
             }.Schedule(physicsSingleton.BodiesList.Length, 16, clearJob);
 
             state.Dependency = addDynamicJob;

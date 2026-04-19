@@ -14,10 +14,6 @@ namespace LittlePhysics
         public int MaxTriggersInCells;
         public int MaxStaticInCells;
 
-        public int MaxCollisionsPerEntity;
-        public int MaxCollisionsPerEntityX2;
-        public int MaxCollisionsPerEntityX4;
-
         public int MaxCellPerEntity;
         public int MaxCellPerEntityX2;
         public int MaxCellPerEntityX4;
@@ -25,6 +21,10 @@ namespace LittlePhysics
         public int MaxPairPerEntity;
         public int MaxPairPerEntityX2;
         public int MaxPairPerEntityX4;
+
+        public int MaxCollisionsPerEntity;
+        public int MaxCollisionsPerEntityX2;
+        public int MaxCollisionsPerEntityX4;
     }
 
     public struct PhysicsSettingsBlobAsset

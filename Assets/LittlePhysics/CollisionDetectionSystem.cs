@@ -45,7 +45,7 @@ namespace LittlePhysics
     }
 
     [BurstCompile]
-    [UpdateInGroup(typeof(LittlePhysicsSystemGroup))]
+    [UpdateInGroup(typeof(LittlePhysicsInternalSystemGroup))]
     [UpdateAfter(typeof(CollisionMapUpdateSystem))]
     public partial struct CollisionDetectionSystem : ISystem
     {
@@ -73,6 +73,9 @@ namespace LittlePhysics
             }
 
             if (!SystemAPI.HasSingleton<PhysicsSingleton>())
+                return;
+
+            if (!SystemAPI.TryGetSingleton<LittlePhysicsTimeComponent>(out var time))
                 return;
 
             var physicsSingleton = SystemAPI.GetSingleton<PhysicsSingleton>();
@@ -117,7 +120,19 @@ namespace LittlePhysics
                 PhysicsSettings = physicsSingleton.Settings,
             }.Schedule(totalCells, 16, afterSurfaceJob);
 
-            state.Dependency = pairsCheckJob;
+            int bodyCount = physicsSingleton.Settings.BlobRef.Value.LodData.MaxEntityCount;
+            var deltaTime = time.DeltaTime;
+
+            var collisionDep = new ApplyCollisionVelocitiesJob
+            {
+                CollisionsMap = Collisions,
+                BodiesList = physicsSingleton.BodiesList,
+                PhysicsVelocities = physicsSingleton.PhysicsVelocities,
+                BodiesCount = physicsSingleton.BodiesCount,
+                DeltaTime = deltaTime
+            }.Schedule(bodyCount, 32, pairsCheckJob);
+
+            state.Dependency = collisionDep;
             physicsSingleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(physicsSingleton);
         }
@@ -376,6 +391,66 @@ namespace LittlePhysics
                 CollisionsMap.TryAdd((uint)triggerIndex, collision);
 
                 CollisionsMap.TryAdd((uint)nonTriggerIndex, collision);
+            }
+        }
+
+        [BurstCompile]
+        private struct ApplyCollisionVelocitiesJob : IJobParallelFor
+        {
+            [NativeDisableContainerSafetyRestriction] public LittleHashMap<CollisionData> CollisionsMap;
+            [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsBodyData> BodiesList;
+            [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+            [ReadOnly] public NativeReference<uint> BodiesCount;
+            public float DeltaTime;
+
+            public void Execute(int index)
+            {
+                if ((uint)index >= BodiesCount.Value)
+                    return;
+
+                uint row = (uint)index;
+
+                var body = BodiesList[index];
+                if (body.BodyType != BodyType.Dynamic)
+                    return;
+
+                var sumVelocity = PhysicsVelocities[index];
+
+                var iterator = CollisionsMap.GetSingleIterator(index);
+                while (CollisionsMap.Traverse(ref iterator, out var pair))
+                {
+                    var collision = pair.Item2;
+
+                    float3 impulse;
+                    float3 pushForce;
+                    if (row == collision.Body1)
+                    {
+                        impulse = collision.Impulse1;
+                        pushForce = collision.PushOutForce1;
+                    }
+                    else
+                    {
+                        impulse = collision.Impulse2;
+                        pushForce = collision.PushOutForce2;
+                    }
+
+                    CollisionForces.ImpulseToVelocity(
+                        body, impulse, collision.ContactPoint,
+                        out float3 linearFromImpulse, out float3 angularFromImpulse);
+
+                    var additionVelocity = new PhysicsVelocityData
+                    {
+                        Linear = linearFromImpulse,
+                        Angular = angularFromImpulse
+                    };
+
+                    body.Position += pushForce * DeltaTime * 10f;
+
+                    sumVelocity += additionVelocity;
+                }
+
+                PhysicsVelocities[index] = sumVelocity;
+                BodiesList[index] = body;
             }
         }
     }

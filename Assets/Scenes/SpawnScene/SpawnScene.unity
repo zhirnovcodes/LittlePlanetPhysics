@@ -179,15 +179,15 @@ MonoBehaviour:
     MaxDynamicsInCells: 4
     MaxTriggersInCells: 0
     MaxStaticInCells: 0
-    MaxCollisionsPerEntity: 4
-    MaxCollisionsPerEntityX2: 4
-    MaxCollisionsPerEntityX4: 4
     MaxCellPerEntity: 2
-    MaxCellPerEntityX2: 16
-    MaxCellPerEntityX4: 8
+    MaxCellPerEntityX2: 1
+    MaxCellPerEntityX4: 1
     MaxPairPerEntity: 8
-    MaxPairPerEntityX2: 16
-    MaxPairPerEntityX4: 8
+    MaxPairPerEntityX2: 4
+    MaxPairPerEntityX4: 2
+    MaxCollisionsPerEntity: 4
+    MaxCollisionsPerEntityX2: 2
+    MaxCollisionsPerEntityX4: 1
   CollisionCheckSettings:
     CheckDynamicVsStatic: 0
     CheckDynamicVsDynamic: 1
@@ -545,10 +545,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.GravitySourceAuthoring
   SourceType: 0
-  SurfaceGravity: 9.81
+  SurfaceGravity: 0.09
   Radius: 25
   IsUp: 0
-  Strength: 9.81
+  Strength: 9.8
 --- !u!23 &1920653450
 MeshRenderer:
   m_ObjectHideFlags: 0

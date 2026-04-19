@@ -30,23 +30,41 @@ namespace LittlePhysics
             var worldTime = World.Time;
             var physicsTime = SystemAPI.GetSingleton<LittlePhysicsTimeComponent>();
 
-            float deltaTime = worldTime.DeltaTime;
+            float worldDeltaTime = worldTime.DeltaTime;
             double timeElapsed = physicsTime.ElapsedTime;
             int timeScale = physicsTime.TimeScale;
 
+            SystemAPI.SetSingleton(new LittlePhysicsTimeComponent
+            {
+                ElapsedTime = timeElapsed,
+                DeltaTime = 0,
+                TimeScale = 0
+            });
+
             for (int i = 0; i < timeScale; i++)
             {
-                timeElapsed += deltaTime;
+                timeElapsed += worldDeltaTime;
 
                 SystemAPI.SetSingleton(new LittlePhysicsTimeComponent
                 {
                     ElapsedTime = timeElapsed,
-                    DeltaTime = deltaTime,
+                    DeltaTime = worldDeltaTime,
                     TimeScale = timeScale
                 });
 
                 base.OnUpdate();
             }
         }
+    }
+
+
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup), OrderFirst = true)]
+    public partial class LittlePhysicsInternalSystemGroup : ComponentSystemGroup
+    {
+    }
+
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup), OrderLast = true)]
+    public partial class LittlePhysicsUserSystemGroup : ComponentSystemGroup
+    {
     }
 }

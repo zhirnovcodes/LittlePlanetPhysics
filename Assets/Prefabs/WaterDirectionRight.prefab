@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4153445065415254014}
   - component: {fileID: 344672801040265401}
   - component: {fileID: 288772923202867488}
-  - component: {fileID: 6123432628339037206}
   m_Layer: 0
   m_Name: WaterDirectionRight
   m_TagString: Untagged
@@ -110,21 +109,8 @@ MonoBehaviour:
   Scale: 1
   Mass: 1
   Bounciness: 0.5
-  Friction: 1
+  Friction: 0
   Hardness: 0.8
   TriggerUpdateInterval: 1
   StartVeclocity: {x: 20, y: 0, z: 0}
   Main: {fileID: 0}
---- !u!114 &6123432628339037206
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8230531957230866194}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41fe5682bf9589147997558f0c9bd54c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.DestroyWithTimerAuthoring
-  DestroyTime: 45

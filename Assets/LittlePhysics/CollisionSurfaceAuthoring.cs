@@ -6,6 +6,7 @@ namespace LittlePhysics
     public sealed class CollisionSurfaceAuthoring : MonoBehaviour
     {
         public SurfaceType SurfaceType;
+        public float Friction = 1f;
 
         [Header("Simple Plane")]
         public float PlaneY;

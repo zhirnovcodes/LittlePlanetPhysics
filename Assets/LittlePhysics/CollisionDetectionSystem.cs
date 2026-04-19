@@ -93,19 +93,6 @@ namespace LittlePhysics
                 PairMap = Pairs,
             }.Schedule(physicsHandle);
 
-            var afterSurfaceJob = clearJob;
-            if (SystemAPI.HasSingleton<CollisionSurfaceComponent>())
-            {
-                afterSurfaceJob = new CheckDynamicVsSurfaceJob
-                {
-                    SurfaceBody = SystemAPI.GetSingleton<CollisionSurfaceComponent>().ToBodyData(),
-                    BodiesList = physicsSingleton.BodiesList,
-                    BodiesCount = physicsSingleton.BodiesCount,
-                    PhysicsVelocities = physicsSingleton.PhysicsVelocities,
-                    PhysicsSettings = physicsSingleton.Settings,
-                }.Schedule(physicsSingleton.BodiesList.Length, 32, clearJob);
-            }
-
             int totalCells = spacialMapSettings.SpacialMap.GetCellsCount();
 
             var pairsCheckJob = new PairsCheckJob
@@ -118,7 +105,7 @@ namespace LittlePhysics
                 CollisionsMap = Collisions,
                 PhysicsVelocities = physicsSingleton.PhysicsVelocities,
                 PhysicsSettings = physicsSingleton.Settings,
-            }.Schedule(totalCells, 16, afterSurfaceJob);
+            }.Schedule(totalCells, 16, clearJob);
 
             int bodyCount = physicsSingleton.Settings.BlobRef.Value.LodData.MaxEntityCount;
             var deltaTime = time.DeltaTime;
@@ -148,53 +135,6 @@ namespace LittlePhysics
                 blob.LodData.MaxEntityCount,
                 blob.LodData.MaxCollisionsPerEntity,
                 Allocator.Persistent);
-        }
-
-        [BurstCompile]
-        private struct CheckDynamicVsSurfaceJob : IJobParallelFor
-        {
-            public PhysicsBodyData SurfaceBody;
-            [ReadOnly] public NativeArray<PhysicsBodyData> BodiesList;
-            [ReadOnly] public NativeReference<uint> BodiesCount;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
-            public PhysicsSettingsComponent PhysicsSettings;
-
-            public void Execute(int index)
-            {
-                if ((uint)index >= BodiesCount.Value)
-                {
-                    return;
-                }
-
-                var body = BodiesList[index];
-                if (body.BodyType != BodyType.Dynamic)
-                {
-                    return;
-                }
-
-                if (!PhysicsSettings.IsColliding(body.Layer, SurfaceBody.Layer))
-                {
-                    return;
-                }
-
-                if (!CollisionMethods.AreBodiesColliding(body, SurfaceBody, out float3 contactPoint))
-                {
-                    return;
-                }
-
-                var vel = PhysicsVelocities[index];
-
-                CollisionForces.GetCollisionImpulses(body, SurfaceBody, vel, default, contactPoint,
-                    out float3 impulse, out _);
-                CollisionForces.GetPushOutForce(body, SurfaceBody, contactPoint,
-                    out float3 pushForce, out _);
-                CollisionForces.ImpulseToVelocity(body, impulse, contactPoint,
-                    out float3 linearChange, out float3 angularChange);
-
-                vel.Linear += linearChange + pushForce;
-                vel.Angular += angularChange;
-                PhysicsVelocities[index] = vel;
-            }
         }
 
         [BurstCompile]

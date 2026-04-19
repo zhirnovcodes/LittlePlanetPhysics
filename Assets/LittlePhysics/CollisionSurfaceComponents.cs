@@ -17,6 +17,7 @@ namespace LittlePhysics
         public Sphere Sphere;
         public float Bounciness;
         public float Hardness;
+        public float Friction;
         public int Layer;
 
         public PhysicsBodyData ToBodyData()
@@ -34,6 +35,7 @@ namespace LittlePhysics
                             Bounciness = Bounciness,
                             Hardness = Hardness,
                             Layer = Layer,
+                            Friction = Friction
                         };
                     }
                 case SurfaceType.Sphere:
@@ -47,6 +49,7 @@ namespace LittlePhysics
                             Bounciness = Bounciness,
                             Hardness = Hardness,
                             Layer = Layer,
+                            Friction = Friction
                         };
                     }
                 case SurfaceType.ReverseSphere:
@@ -60,6 +63,7 @@ namespace LittlePhysics
                             Bounciness = Bounciness,
                             Hardness = Hardness,
                             Layer = Layer,
+                            Friction = Friction
                         };
                     }
             }
@@ -67,16 +71,13 @@ namespace LittlePhysics
             return new PhysicsBodyData
             {
                 BodyType = BodyType.Static,
-                ColliderType = SurfaceType == SurfaceType.SimplePlane
-                    ? ColliderType.SimplePlane
-                    : ColliderType.Sphere,
-                Position = SurfaceType == SurfaceType.SimplePlane
-                    ? new float3(0f, Plane.Y, 0f)
-                    : Sphere.Position,
-                Scale = SurfaceType == SurfaceType.SimplePlane ? 0f : Sphere.Scale,
+                ColliderType = ColliderType.Sphere,
+                Position = Sphere.Position,
+                Scale = Sphere.Scale,
                 Bounciness = Bounciness,
                 Hardness = Hardness,
                 Layer = Layer,
+                Friction = Friction
             };
         }
     }

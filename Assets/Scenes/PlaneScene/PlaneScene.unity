@@ -280,7 +280,7 @@ MonoBehaviour:
   SurfaceGravity: 9.81
   Radius: 10
   IsUp: 0
-  Strength: 9.81
+  Strength: 0.1
 --- !u!23 &363044241
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -705,15 +705,15 @@ MonoBehaviour:
     MaxDynamicsInCells: 4
     MaxTriggersInCells: 0
     MaxStaticInCells: 0
-    MaxCollisionsPerEntity: 8
-    MaxCollisionsPerEntityX2: 8
-    MaxCollisionsPerEntityX4: 4
     MaxCellPerEntity: 4
     MaxCellPerEntityX2: 8
     MaxCellPerEntityX4: 8
     MaxPairPerEntity: 16
     MaxPairPerEntityX2: 16
     MaxPairPerEntityX4: 8
+    MaxCollisionsPerEntity: 8
+    MaxCollisionsPerEntityX2: 8
+    MaxCollisionsPerEntityX4: 4
   CollisionCheckSettings:
     CheckDynamicVsStatic: 0
     CheckDynamicVsDynamic: 1

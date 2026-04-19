@@ -450,20 +450,24 @@ PrefabInstance:
       value: CameraHolder
       objectReference: {fileID: 0}
     - target: {fileID: 8150271765418735952, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
+      propertyPath: Position
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8150271765418735952, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: PlanetScale
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8983351090638129813, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: 0.92685664
       objectReference: {fileID: 0}
     - target: {fileID: 8983351090638129813, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.7071068
+      value: 0.37541556
       objectReference: {fileID: 0}
     - target: {fileID: 8983351090638129813, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 90
+      value: 44.1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

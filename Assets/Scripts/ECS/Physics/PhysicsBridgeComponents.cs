@@ -96,6 +96,7 @@ namespace LittlePhysics
         public float Friction;
         public float Hardness;
         public bool ShouldUpdateMap;
+        public bool ShouldRotateOnCollision;
         public int LodIndex;
         public int Layer;
 

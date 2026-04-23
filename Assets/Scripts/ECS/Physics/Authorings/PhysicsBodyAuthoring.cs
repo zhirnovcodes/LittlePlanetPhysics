@@ -16,6 +16,7 @@ namespace LittlePhysics
         public float Hardness = 0.5f;
         public float TriggerUpdateInterval = 1f;
         public Vector3 StartVeclocity;
+        public bool ShouldRotateOnCollision = true;
         public GameObject Main;
 
         private sealed class Baker : Baker<PhysicsBodyAuthoring>
@@ -38,6 +39,7 @@ namespace LittlePhysics
                     Hardness = authoring.Hardness,
                     Main = main,
                     Layer = authoring.gameObject.layer,
+                    ShouldRotateOnCollision = authoring.ShouldRotateOnCollision,
                 });
 
                 AddComponent(entity, new PhysicsBodyUpdateComponent

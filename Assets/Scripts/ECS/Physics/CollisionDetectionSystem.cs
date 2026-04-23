@@ -381,7 +381,7 @@ namespace LittlePhysics
                     var additionVelocity = new PhysicsVelocityData
                     {
                         Linear = linearFromImpulse,
-                        Angular = angularFromImpulse
+                        Angular = body.ShouldRotateOnCollision ? angularFromImpulse : float3.zero
                     };
 
                     body.Position += pushForce * DeltaTime * 10f;

@@ -136,7 +136,7 @@ namespace LittlePhysics
 
                 body.Position += pushForce * DeltaTime * 10f;
                 vel.Linear += linearChange;
-                vel.Angular += angularChange;
+                vel.Angular += body.ShouldRotateOnCollision ? angularChange : float3.zero;
                 BodiesList[index] = body;
                 PhysicsVelocities[index] = vel;
             }

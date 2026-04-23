@@ -6,6 +6,7 @@ namespace LittlePhysics
     public sealed class PhysicsSettingsAuthoring : MonoBehaviour
     {
         public int MaxEntitiesCount = 1000000;
+        public EnvironmentSettings EnvironmentSettings;
         public LodPhysicsData LodData;
         public CollisionCheckSettings CollisionCheckSettings = new CollisionCheckSettings
         {
@@ -25,6 +26,7 @@ namespace LittlePhysics
                     MaxEntitiesCount = authoring.MaxEntitiesCount,
                     LodData = authoring.LodData,
                     CheckSettings = authoring.CollisionCheckSettings,
+                    EnvironmentSettings = authoring.EnvironmentSettings,
                 });
             }
         }

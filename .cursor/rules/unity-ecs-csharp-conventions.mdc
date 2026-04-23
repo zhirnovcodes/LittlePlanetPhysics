@@ -13,8 +13,10 @@ Target this project's C# code for Unity `6000.4.x` and Entities/ECS `6.4.0`.
 - System types must end with `System`.
 - Authoring types must end with `Authoring`.
 - Job types must end with `Job`.
-- Use PascalCase for class members, static members, and constants.
-- Use camelCase for methods and private members, except when Unity or ECS requires a fixed API name such as interface implementations, overrides, attributes, or serialized callback methods.
+- Use PascalCase for all type members: fields, properties, and methods (public or private), and constants.
+- Use camelCase only for local variables and parameters inside method bodies.
+- Exception: Unity/ECS interface implementations and fixed API callbacks (e.g. `OnCreate`, `OnUpdate`, `OnDestroy`, `Execute`) keep their Unity-required names.
+- Local variable and parameter names must be 1–4 descriptive words. Avoid single-letter names and abbreviations. Exception: loop iterators (`i`, `j`, etc.).
 
 Examples:
 
@@ -32,10 +34,13 @@ namespace LittlePhysics
 
         public void OnUpdate(ref SystemState state)
         {
-            updateMovement(ref state);
+            UpdateMovement(ref state);
         }
 
-        private void updateMovement(ref SystemState state) { }
+        private void UpdateMovement(ref SystemState state)
+        {
+            float scaledDelta = cachedDeltaTime * 2f;
+        }
     }
 }
 ```

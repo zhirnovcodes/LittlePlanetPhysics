@@ -12,14 +12,31 @@ namespace LittlePhysics
     [UpdateAfter(typeof(CollisionMapUpdateSystem))]
     public partial struct SurfaceCollisionSystem : ISystem
     {
+        public NativeArray<SurfaceCollisionData> SurfaceCollisionMap;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PhysicsSettingsComponent>();
             state.RequireForUpdate<CollisionSurfaceComponent>();
         }
 
+        public void OnDestroy(ref SystemState state)
+        {
+            if (SurfaceCollisionMap.IsCreated)
+            {
+                SurfaceCollisionMap.Dispose();
+            }
+        }
+
         public void OnUpdate(ref SystemState state)
         {
+            var settings = SystemAPI.GetSingleton<PhysicsSettingsComponent>();
+
+            if (!SurfaceCollisionMap.IsCreated)
+            {
+                SurfaceCollisionMap = new NativeArray<SurfaceCollisionData>(settings.BlobRef.Value.LodData.MaxEntityCount, Allocator.Persistent);
+            }
+
             if (!SystemAPI.HasSingleton<PhysicsSingleton>())
             {
                 return;
@@ -39,6 +56,11 @@ namespace LittlePhysics
 
             var physicsHandle = JobHandle.CombineDependencies(state.Dependency, physicsSingleton.PhysicsJobHandle);
 
+            var clearJob = new ClearSurfaceCollisionMapJob
+            {
+                SurfaceCollisionMap = SurfaceCollisionMap,
+            }.Schedule(SurfaceCollisionMap.Length, 64, physicsHandle);
+
             var surfaceJob = new CheckDynamicVsSurfaceJob
             {
                 SurfaceBody = SystemAPI.GetSingleton<CollisionSurfaceComponent>().ToBodyData(),
@@ -47,11 +69,24 @@ namespace LittlePhysics
                 PhysicsVelocities = physicsSingleton.PhysicsVelocities,
                 PhysicsSettings = physicsSingleton.Settings,
                 DeltaTime = time.DeltaTime,
-            }.Schedule(physicsSingleton.BodiesList.Length, 32, physicsHandle);
+                SurfaceCollisionMap = SurfaceCollisionMap,
+            }.Schedule(physicsSingleton.BodiesList.Length, 32, clearJob);
 
             state.Dependency = surfaceJob;
+            physicsSingleton.CollisionMap.SurfaceCollisionMap = SurfaceCollisionMap;
             physicsSingleton.PhysicsJobHandle = state.Dependency;
             SystemAPI.SetSingleton(physicsSingleton);
+        }
+
+        [BurstCompile]
+        private struct ClearSurfaceCollisionMapJob : IJobParallelFor
+        {
+            public NativeArray<SurfaceCollisionData> SurfaceCollisionMap;
+
+            public void Execute(int index)
+            {
+                SurfaceCollisionMap[index] = default;
+            }
         }
 
         [BurstCompile]
@@ -61,6 +96,7 @@ namespace LittlePhysics
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsBodyData> BodiesList;
             [ReadOnly] public NativeReference<uint> BodiesCount;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
+            [NativeDisableContainerSafetyRestriction] public NativeArray<SurfaceCollisionData> SurfaceCollisionMap;
             public PhysicsSettingsComponent PhysicsSettings;
             public float DeltaTime;
 
@@ -87,6 +123,8 @@ namespace LittlePhysics
                     return;
                 }
 
+                SurfaceCollisionMap[index] = new SurfaceCollisionData { IsColliding = true, ContactPoint = contactPoint };
+
                 var vel = PhysicsVelocities[index];
 
                 CollisionForces.GetCollisionImpulses(body, SurfaceBody, vel, default, contactPoint,
@@ -96,43 +134,11 @@ namespace LittlePhysics
                 CollisionForces.ImpulseToVelocity(body, impulse, contactPoint,
                     out float3 linearChange, out float3 angularChange);
 
-                ApplyFriction(body, SurfaceBody, vel, contactPoint,
-                    out float3 frictionLinear, out float3 frictionAngular);
-
                 body.Position += pushForce * DeltaTime * 10f;
-                vel.Linear += linearChange + frictionLinear;
-                vel.Angular += angularChange + frictionAngular;
+                vel.Linear += linearChange;
+                vel.Angular += angularChange;
                 BodiesList[index] = body;
                 PhysicsVelocities[index] = vel;
-            }
-
-            private void ApplyFriction(
-                in PhysicsBodyData body,
-                in PhysicsBodyData surfaceBody,
-                in PhysicsVelocityData vel,
-                float3 contactPoint,
-                out float3 frictionLinear,
-                out float3 frictionAngular)
-            {
-                float3 bodyRv = CollisionForces.GetRadiusVector(body, contactPoint);
-                float3 surfaceRv = CollisionForces.GetRadiusVector(surfaceBody, contactPoint);
-                float3 delta = bodyRv - surfaceRv;
-                float deltaLen = math.length(delta);
-
-                if (deltaLen < 0.0001f)
-                {
-                    frictionLinear = float3.zero;
-                    frictionAngular = float3.zero;
-                    return;
-                }
-
-                float3 normal = delta / deltaLen;
-                float normalComponent = math.dot(vel.Linear, normal);
-                float3 tangentialVelocity = vel.Linear - normal * normalComponent;
-                float friction = math.clamp(body.Friction * DeltaTime, 0, 1);
-
-                frictionLinear = -tangentialVelocity * friction;
-                frictionAngular = -vel.Angular * friction;
             }
         }
     }

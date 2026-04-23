@@ -63,8 +63,14 @@ namespace LittlePhysics
     {
     }
 
-    [UpdateInGroup(typeof(LittlePhysicsSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup))]
+    [UpdateAfter(typeof(LittlePhysicsInternalSystemGroup))]
     public partial class LittlePhysicsUserSystemGroup : ComponentSystemGroup
+    {
+    }
+
+    [UpdateInGroup(typeof(LittlePhysicsSystemGroup), OrderLast = true)]
+    public partial class LittlePhysicsLateSystemGroup : ComponentSystemGroup
     {
     }
 }

@@ -21,11 +21,18 @@ namespace LittlePhysics
             return unchecked((int)(Entity1.Index ^ Entity2.Index));
         }
     }
+    public struct SurfaceCollisionData
+    {
+        public bool IsColliding;
+        public float3 ContactPoint;
+    }
+
     public struct CollisionMapSingleton
     {
         [NoAlias] public NativeCollisionMap DynamicCollisionMap;
         [NoAlias] public NativeCollisionMap TriggersCollisionMap;
         [NoAlias] public NativeCollisionMap StaticCollisionMap;
+        [NoAlias] public NativeArray<SurfaceCollisionData> SurfaceCollisionMap;
     }
 
     public struct CollisionItem

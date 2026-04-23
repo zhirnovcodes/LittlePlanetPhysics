@@ -61,6 +61,7 @@ namespace LittlePhysics
             ref var root = ref builder.ConstructRoot<PhysicsSettingsBlobAsset>();
             root.MaxEntitiesCount = settingsData.MaxEntitiesCount;
             root.LodData = settingsData.LodData;
+            root.EnvironmentSettings = settingsData.EnvironmentSettings;
 
             var layersMapsBuilder = builder.Allocate(ref root.LayersMaps, 32);
             for (int i = 0; i < 32; i++)
@@ -161,6 +162,11 @@ namespace LittlePhysics
             var detectionHandle = state.World.GetExistingSystem<CollisionDetectionSystem>();
             ref var detectionSystem = ref state.World.Unmanaged.GetUnsafeSystemRef<CollisionDetectionSystem>(detectionHandle);
 
+            var surfaceCollisionHandle = state.World.GetExistingSystem<SurfaceCollisionSystem>();
+            var surfaceCollisionMap = surfaceCollisionHandle != SystemHandle.Null
+                ? state.World.Unmanaged.GetUnsafeSystemRef<SurfaceCollisionSystem>(surfaceCollisionHandle).SurfaceCollisionMap
+                : default;
+
             var spacialMap = SystemAPI.GetSingleton<SpacialMapSettingsComponent>().SpacialMap;
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
@@ -174,7 +180,8 @@ namespace LittlePhysics
                 {
                     DynamicCollisionMap = collisionMapSystem.DynamicCollisionMap,
                     TriggersCollisionMap = collisionMapSystem.TriggersCollisionMap,
-                    StaticCollisionMap = collisionMapSystem.StaticCollisionMap
+                    StaticCollisionMap = collisionMapSystem.StaticCollisionMap,
+                    SurfaceCollisionMap = surfaceCollisionMap,
                 },
                 Collisions = new CollisionsSingleton
                 {

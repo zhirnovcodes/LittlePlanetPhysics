@@ -514,7 +514,7 @@ MonoBehaviour:
   BodyType: 1
   ColliderType: 1
   LocalPosition: {x: 0, y: 0, z: 0}
-  Scale: 5
+  Scale: 1
   Mass: 1
   Bounciness: 0.5
   Friction: 0.5
@@ -831,7 +831,7 @@ MonoBehaviour:
     MaxCollisionsPerEntityX2: 8
     MaxCollisionsPerEntityX4: 4
   CollisionCheckSettings:
-    CheckDynamicVsStatic: 0
+    CheckDynamicVsStatic: 1
     CheckDynamicVsDynamic: 1
     CheckTriggerVsDynamic: 0
     CheckTriggerVsStatic: 0

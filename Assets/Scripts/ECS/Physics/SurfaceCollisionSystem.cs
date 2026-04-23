@@ -106,7 +106,7 @@ namespace LittlePhysics
                 PhysicsVelocities[index] = vel;
             }
 
-            private static void ApplyFriction(
+            private void ApplyFriction(
                 in PhysicsBodyData body,
                 in PhysicsBodyData surfaceBody,
                 in PhysicsVelocityData vel,
@@ -129,9 +129,10 @@ namespace LittlePhysics
                 float3 normal = delta / deltaLen;
                 float normalComponent = math.dot(vel.Linear, normal);
                 float3 tangentialVelocity = vel.Linear - normal * normalComponent;
+                float friction = math.clamp(body.Friction * DeltaTime, 0, 1);
 
-                frictionLinear = -tangentialVelocity * body.Friction;
-                frictionAngular = -vel.Angular * body.Friction;
+                frictionLinear = -tangentialVelocity * friction;
+                frictionAngular = -vel.Angular * friction;
             }
         }
     }

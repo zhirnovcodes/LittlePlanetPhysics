@@ -171,6 +171,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.PhysicsSettingsAuthoring
   MaxEntitiesCount: 100000
+  EnvironmentSettings:
+    AirFriction: 0
   LodData:
     DistanceRange:
       x: 0
@@ -420,6 +422,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 0
+  Friction: 1
   PlaneY: 0
   Bounciness: 0.5
   Hardness: 1
@@ -634,6 +637,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.CollisionSurfaceAuthoring
   SurfaceType: 1
+  Friction: 0.5
   PlaneY: 0
   Bounciness: 0
   Hardness: 1

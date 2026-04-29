@@ -113,4 +113,5 @@ MonoBehaviour:
   Hardness: 0.8
   TriggerUpdateInterval: 1
   StartVeclocity: {x: -20, y: 0, z: 0}
+  ShouldRotateOnCollision: 1
   Main: {fileID: 0}

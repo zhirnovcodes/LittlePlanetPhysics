@@ -31,6 +31,7 @@ namespace LittlePhysics
     public struct EnvironmentSettings
     {
         public float AirFriction;
+        public float PushOutPower;
     }
 
     public struct PhysicsSettingsBlobAsset

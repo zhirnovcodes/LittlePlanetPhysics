@@ -521,6 +521,7 @@ MonoBehaviour:
   Hardness: 0.5
   TriggerUpdateInterval: 1
   StartVeclocity: {x: 0, y: 0, z: 0}
+  ShouldRotateOnCollision: 1
   Main: {fileID: 0}
 --- !u!23 &859161433
 MeshRenderer:
@@ -813,6 +814,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.PhysicsSettingsAuthoring
   MaxEntitiesCount: 100000
+  AirFriction: 0
+  PushOutPower: 10
   LodData:
     DistanceRange:
       x: 0

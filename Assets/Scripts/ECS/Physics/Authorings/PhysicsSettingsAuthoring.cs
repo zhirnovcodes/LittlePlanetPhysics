@@ -6,7 +6,8 @@ namespace LittlePhysics
     public sealed class PhysicsSettingsAuthoring : MonoBehaviour
     {
         public int MaxEntitiesCount = 1000000;
-        public EnvironmentSettings EnvironmentSettings;
+        public float AirFriction = 0.5f;
+        public float PushOutPower = 10f;
         public LodPhysicsData LodData;
         public CollisionCheckSettings CollisionCheckSettings = new CollisionCheckSettings
         {
@@ -26,7 +27,11 @@ namespace LittlePhysics
                     MaxEntitiesCount = authoring.MaxEntitiesCount,
                     LodData = authoring.LodData,
                     CheckSettings = authoring.CollisionCheckSettings,
-                    EnvironmentSettings = authoring.EnvironmentSettings,
+                    EnvironmentSettings = new EnvironmentSettings
+                    {
+                        AirFriction = authoring.AirFriction,
+                        PushOutPower = authoring.PushOutPower
+                    },
                 });
             }
         }

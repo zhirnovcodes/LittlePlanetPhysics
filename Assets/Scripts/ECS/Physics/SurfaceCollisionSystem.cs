@@ -68,6 +68,7 @@ namespace LittlePhysics
                 BodiesCount = physicsSingleton.BodiesCount,
                 PhysicsVelocities = physicsSingleton.PhysicsVelocities,
                 PhysicsSettings = physicsSingleton.Settings,
+                PushOutPower = physicsSingleton.Settings.BlobRef.Value.EnvironmentSettings.PushOutPower,
                 DeltaTime = time.DeltaTime,
                 SurfaceCollisionMap = SurfaceCollisionMap,
             }.Schedule(physicsSingleton.BodiesList.Length, 32, clearJob);
@@ -98,6 +99,7 @@ namespace LittlePhysics
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             [NativeDisableContainerSafetyRestriction] public NativeArray<SurfaceCollisionData> SurfaceCollisionMap;
             public PhysicsSettingsComponent PhysicsSettings;
+            public float PushOutPower;
             public float DeltaTime;
 
             public void Execute(int index)
@@ -134,7 +136,7 @@ namespace LittlePhysics
                 CollisionForces.ImpulseToVelocity(body, impulse, contactPoint,
                     out float3 linearChange, out float3 angularChange);
 
-                body.Position += pushForce * DeltaTime * 10f;
+                body.Position += pushForce * DeltaTime * PushOutPower;
                 vel.Linear += linearChange;
                 vel.Angular += body.ShouldRotateOnCollision ? angularChange : float3.zero;
                 BodiesList[index] = body;

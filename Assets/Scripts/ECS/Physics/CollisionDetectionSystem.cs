@@ -116,6 +116,7 @@ namespace LittlePhysics
                 BodiesList = physicsSingleton.BodiesList,
                 PhysicsVelocities = physicsSingleton.PhysicsVelocities,
                 BodiesCount = physicsSingleton.BodiesCount,
+                PushOutPower = physicsSingleton.Settings.BlobRef.Value.EnvironmentSettings.PushOutPower,
                 DeltaTime = deltaTime
             }.Schedule(bodyCount, 32, pairsCheckJob);
 
@@ -341,6 +342,7 @@ namespace LittlePhysics
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsBodyData> BodiesList;
             [NativeDisableContainerSafetyRestriction] public NativeArray<PhysicsVelocityData> PhysicsVelocities;
             [ReadOnly] public NativeReference<uint> BodiesCount;
+            public float PushOutPower;
             public float DeltaTime;
 
             public void Execute(int index)
@@ -384,7 +386,7 @@ namespace LittlePhysics
                         Angular = body.ShouldRotateOnCollision ? angularFromImpulse : float3.zero
                     };
 
-                    body.Position += pushForce * DeltaTime * 10f;
+                    body.Position += pushForce * DeltaTime * PushOutPower;
 
                     sumVelocity += additionVelocity;
                 }

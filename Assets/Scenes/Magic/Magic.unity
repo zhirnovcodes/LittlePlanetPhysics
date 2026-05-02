@@ -595,7 +595,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpawnAuthoring
   Prefab: {fileID: 8404245804384635011, guid: fa0be41b3ce4a254cb42844e124faf85, type: 3}
-  MaxCount: 10000
+  MaxCount: 11000
   SingleSpawnCount: {x: 400, y: 1000}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
@@ -686,7 +686,7 @@ MonoBehaviour:
     DistanceRange:
       x: 0
       y: 1000
-    MaxEntityCount: 20000
+    MaxEntityCount: 30000
     MaxDynamicsInCells: 32
     MaxTriggersInCells: 8
     MaxStaticInCells: 0

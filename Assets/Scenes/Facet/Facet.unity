@@ -272,6 +272,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.PhysicsSettingsAuthoring
   MaxEntitiesCount: 3000
+  AirFriction: 0.5
+  PushOutPower: 10
   LodData:
     DistanceRange:
       x: 0
@@ -335,7 +337,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 660482608}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -400,8 +402,9 @@ MonoBehaviour:
   Prefab: {fileID: 2540581496615364108, guid: 6aab296c21aa78d4391658b937507a3d, type: 3}
   MaxCount: 25000
   SingleSpawnCount: {x: 30, y: 50}
-  SpawnIntervalSec: {x: 0.1, y: 0.3}
+  SpawnIntervalSec: {x: 0.05, y: 0.1}
   MassRange: {x: 0.5, y: 2}
+  ScaleRange: {x: 1, y: 1}
   RandomSeed: 100
 --- !u!4 &660482612
 Transform:

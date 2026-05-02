@@ -57,6 +57,7 @@ MonoBehaviour:
   Hardness: 0.8
   TriggerUpdateInterval: 1
   StartVeclocity: {x: 0, y: -10, z: 0}
+  ShouldRotateOnCollision: 1
   Main: {fileID: 0}
 --- !u!114 &3358530327173921693
 MonoBehaviour:
@@ -70,7 +71,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41fe5682bf9589147997558f0c9bd54c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.DestroyWithTimerAuthoring
-  DestroyTime: 45
+  DestroyTime: 30
 --- !u!205 &1594853550054172463
 LODGroup:
   m_ObjectHideFlags: 0
@@ -153,7 +154,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6f26271d5efb7cf44a018cc60879385e, type: 2}
+  - {fileID: 2100000, guid: ed55a3845d108b74d9b6c23220d658f1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -276,7 +277,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6f26271d5efb7cf44a018cc60879385e, type: 2}
+  - {fileID: 2100000, guid: ed55a3845d108b74d9b6c23220d658f1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

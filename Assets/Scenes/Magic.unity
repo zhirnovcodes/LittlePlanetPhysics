@@ -244,7 +244,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
-  m_Color: {r: 0.7614147, g: 1, b: 0.73018867, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
@@ -409,16 +409,20 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1057467246967230071, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1057467246967230071, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: m_BackGroundColor.b
-      value: 0.9650533
+      value: 0.7686275
       objectReference: {fileID: 0}
     - target: {fileID: 1057467246967230071, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: m_BackGroundColor.g
-      value: 0.8660377
+      value: 0.53333336
       objectReference: {fileID: 0}
     - target: {fileID: 1057467246967230071, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: m_BackGroundColor.r
-      value: 1
+      value: 0.59607846
       objectReference: {fileID: 0}
     - target: {fileID: 2900615305606605874, guid: ed72a56f1b5f15b44b8a8afa3c08b761, type: 3}
       propertyPath: DepthScrollSlide

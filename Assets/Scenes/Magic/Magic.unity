@@ -599,6 +599,7 @@ MonoBehaviour:
   SingleSpawnCount: {x: 400, y: 1000}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
+  ScaleRange: {x: 0.2, y: 1}
   RandomSeed: 100
 --- !u!4 &1570239330
 Transform:
@@ -686,18 +687,18 @@ MonoBehaviour:
       x: 0
       y: 1000
     MaxEntityCount: 20000
-    MaxDynamicsInCells: 4
-    MaxTriggersInCells: 4
+    MaxDynamicsInCells: 32
+    MaxTriggersInCells: 8
     MaxStaticInCells: 0
-    MaxCellPerEntity: 8
-    MaxCellPerEntityX2: 8
+    MaxCellPerEntity: 32
+    MaxCellPerEntityX2: 16
     MaxCellPerEntityX4: 8
-    MaxPairPerEntity: 16
-    MaxPairPerEntityX2: 16
-    MaxPairPerEntityX4: 8
-    MaxCollisionsPerEntity: 8
-    MaxCollisionsPerEntityX2: 8
-    MaxCollisionsPerEntityX4: 4
+    MaxPairPerEntity: 64
+    MaxPairPerEntityX2: 32
+    MaxPairPerEntityX4: 16
+    MaxCollisionsPerEntity: 32
+    MaxCollisionsPerEntityX2: 16
+    MaxCollisionsPerEntityX4: 8
   CollisionCheckSettings:
     CheckDynamicVsStatic: 0
     CheckDynamicVsDynamic: 1

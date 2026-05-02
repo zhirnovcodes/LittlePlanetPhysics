@@ -10,6 +10,7 @@ namespace LittlePhysics
         public int2 SingleSpawnCount;   // x = min, y = max per batch
         public float2 SpawnIntervalSec; // x = min, y = max seconds between batches
         public float2 MassRange;        // x = min, y = max
+        public float2 ScaleRange;       // x = min, y = max uniform scale for spawned objects
         public float3 CenterPosition;
         public float3 Scale;            // full extents of the spawn AABB
 

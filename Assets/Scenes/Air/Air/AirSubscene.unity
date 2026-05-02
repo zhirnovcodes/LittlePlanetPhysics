@@ -630,6 +630,7 @@ MonoBehaviour:
   SingleSpawnCount: {x: 4000, y: 10000}
   SpawnIntervalSec: {x: 0.1, y: 0.3}
   MassRange: {x: 0.5, y: 2}
+  ScaleRange: {x: 0.5, y: 1}
   RandomSeed: 100
 --- !u!4 &1570239330
 Transform:

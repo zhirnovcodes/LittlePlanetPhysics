@@ -75,7 +75,8 @@ namespace LittlePhysics
                         spawn.Rng.NextFloat(-halfScale.z, halfScale.z)
                     );
 
-                    ecb.SetComponent(instance, LocalTransform.FromPosition(position));
+                    var scale = spawn.Rng.NextFloat(spawn.ScaleRange.x, spawn.ScaleRange.y);
+                    ecb.SetComponent(instance, LocalTransform.FromPositionRotationScale(position, quaternion.identity, scale));
 
                 }
 

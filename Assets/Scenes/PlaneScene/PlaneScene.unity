@@ -680,8 +680,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71246454091084843843a64c3bd2582b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittlePhysics.SpacialMapSettingsAuthoring
-  Position: {x: -33.577377, y: 0, z: -16.166729}
-  CellWidth: 1
+  Position: {x: -62.272568, y: 0, z: -30.126654}
+  CellWidth: 2
   GridSize:
     x: 64
     y: 8
@@ -708,12 +708,12 @@ MonoBehaviour:
       x: 0
       y: 1000
     MaxEntityCount: 50000
-    MaxDynamicsInCells: 8
+    MaxDynamicsInCells: 16
     MaxTriggersInCells: 0
     MaxStaticInCells: 0
-    MaxCellPerEntity: 4
-    MaxCellPerEntityX2: 2
-    MaxCellPerEntityX4: 1
+    MaxCellPerEntity: 8
+    MaxCellPerEntityX2: 4
+    MaxCellPerEntityX4: 2
     MaxPairPerEntity: 32
     MaxPairPerEntityX2: 16
     MaxPairPerEntityX4: 8

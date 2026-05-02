@@ -108,7 +108,7 @@ MonoBehaviour:
   LocalPosition: {x: 0, y: 0, z: 0}
   Scale: 1
   Mass: 1
-  Bounciness: 0.5
+  Bounciness: 0.3
   Friction: 1
   Hardness: 0.8
   TriggerUpdateInterval: 1

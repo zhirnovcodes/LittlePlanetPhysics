@@ -58,14 +58,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.2999999, g: 0.8382031, b: 1, a: 0.5411765}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 7b2ed7679b6dc1e47a75685972bd1827, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -142,15 +142,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: 1000000
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
+  m_sharedMaterial: {fileID: 5044913791477110417, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4291614925
+  m_fontColor: {r: 0.80392164, g: 0.8470589, b: 0.8000001, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -279,15 +279,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'FPS:'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
+  m_sharedMaterial: {fileID: 5044913791477110417, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4291614925
+  m_fontColor: {r: 0.80392164, g: 0.8470589, b: 0.8000001, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -489,8 +489,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 760, y: 467}
-  m_SizeDelta: {x: 357.7865, y: 88.2609}
+  m_AnchoredPosition: {x: 745.7738, y: 467}
+  m_SizeDelta: {x: 386.2389, y: 88.2609}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5833214172993659453
 MonoBehaviour:
@@ -624,15 +624,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: 1000000
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
+  m_sharedMaterial: {fileID: 5044913791477110417, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4291614925
+  m_fontColor: {r: 0.80392164, g: 0.8470589, b: 0.8000001, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -728,8 +728,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -93.11743, y: 0.00048828125}
-  m_SizeDelta: {x: 149.9745, y: 88.261}
+  m_AnchoredPosition: {x: -100.569214, y: 0.00048828125}
+  m_SizeDelta: {x: 164.8781, y: 88.261}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4624966606440750293
 CanvasRenderer:
@@ -761,15 +761,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Bodies:'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
+  m_sharedMaterial: {fileID: 5044913791477110417, guid: 1d738d958e1a84141b8bcd70a7c1e52f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4291614925
+  m_fontColor: {r: 0.80392164, g: 0.8470589, b: 0.8000001, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -889,14 +889,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.2999999, g: 0.8382031, b: 1, a: 0.5411765}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 7b2ed7679b6dc1e47a75685972bd1827, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
